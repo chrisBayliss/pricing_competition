@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 
 from Fixed_price_competitor import *
 from Random_price_competitor import *
+from Epsilon_greedy_competitor import *
 from demand_model_1 import *
 
 
@@ -29,9 +30,14 @@ competitor_objs=[]
 #generate competitor objects (the content of parameterdump are stored within these objects in this framework. For the competition version these will be transferred to the parameterdump object (which is not used within this testing framework))
 rand_comp_1=Random_price_competitor(0)
 fixed_comp_1=Fixed_price_competitor(1, 50)
+#epsilon competitor
+epsilon=0.1
+epsilon_greedy_comp_1=Epsilon_greedy_competitor(2, epsilon)
 
+#add competitors to list
 competitor_objs.append(rand_comp_1)
 competitor_objs.append(fixed_comp_1)
+competitor_objs.append(epsilon_greedy_comp_1)
 
 C=len(competitor_objs)
 
