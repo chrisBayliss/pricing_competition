@@ -34,10 +34,16 @@ fixed_comp_1=Fixed_price_competitor(1, 50)
 epsilon=0.1
 epsilon_greedy_comp_1=Epsilon_greedy_competitor(2, epsilon)
 
+
+#demand profile competitor
+price_profile_comp_1=demand_profile_competitor(3, np)
+
 #add competitors to list
 competitor_objs.append(rand_comp_1)
 competitor_objs.append(fixed_comp_1)
 competitor_objs.append(epsilon_greedy_comp_1)
+competitor_objs.append(price_profile_comp_1)
+
 
 C=len(competitor_objs)
 

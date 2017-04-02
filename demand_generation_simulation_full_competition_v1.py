@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from Fixed_price_competitor import *
 from Random_price_competitor import *
 from Epsilon_greedy_competitor import *
+from demand_profile_competitor import *
 from demand_model_1 import *
 
 
@@ -34,10 +35,14 @@ fixed_comp_1=Fixed_price_competitor(1, 50)
 epsilon=0.1
 epsilon_greedy_comp_1=Epsilon_greedy_competitor(2, epsilon)
 
+#demand profile competitor
+price_profile_comp_1=demand_profile_competitor(3, np)
+
 #add competitors to list
 competitor_objs.append(rand_comp_1)
 competitor_objs.append(fixed_comp_1)
 competitor_objs.append(epsilon_greedy_comp_1)
+competitor_objs.append(price_profile_comp_1)
 
 C=len(competitor_objs);#number of competitors
 
@@ -76,6 +81,7 @@ for rep in range(repeats):
 	prices_historical=np.zeros((C,T))
 	#time steps
 	for t in range(T):
+		#print(t)
 		#get competitor prices for the current time period (current/next: check whic for actual competition. In this version competit)
 		prices_this_t=[]#prices this time period (to avoid contaminating the timeline)
 		for c in range(C):
