@@ -8,6 +8,7 @@ from Random_price_competitor import *
 from Epsilon_greedy_competitor import *
 from demand_profile_competitor import *
 from demand_model_1 import *
+from demand_model_2 import *
 
 
 #x=np.array([[7,8,5],[3,5,7]],np.int32)
@@ -42,7 +43,7 @@ price_profile_comp_1=demand_profile_competitor(3, np)
 competitor_objs.append(rand_comp_1)
 competitor_objs.append(fixed_comp_1)
 competitor_objs.append(epsilon_greedy_comp_1)
-competitor_objs.append(price_profile_comp_1)
+#competitor_objs.append(price_profile_comp_1)
 
 C=len(competitor_objs);#number of competitors
 
@@ -54,7 +55,8 @@ b=1;
 mu=50
 sigma=10
 #demand model 1
-dm_1=demand_model_1(C, a, b, mu, sigma)
+#dm_1=demand_model_1(C, a, b, mu, sigma)
+dm_1=demand_model_2(C)
 
 
 #non-dynamic randomly generated customer prices
@@ -63,6 +65,7 @@ prices_historical=np.zeros((C,T))
 #print(prices_historical)
 
 #demand per competitor in each time period
+comp_demand_p_input=np.zeros((C,T))
 comp_demand=np.zeros((C,T))
 #total profit per competitor
 comp_profit=np.zeros((C,T))
@@ -76,7 +79,7 @@ selected_comp_index=0
 for rep in range(repeats):
 	print('rep=',rep)
 	#reset demand array
-	comp_demand=np.zeros((C,T))
+	comp_demand_p_input=np.zeros((C,T))
 	#reset prices_historical
 	prices_historical=np.zeros((C,T))
 	#time steps
@@ -85,7 +88,7 @@ for rep in range(repeats):
 		#get competitor prices for the current time period (current/next: check whic for actual competition. In this version competit)
 		prices_this_t=[]#prices this time period (to avoid contaminating the timeline)
 		for c in range(C):
-			prices_this_t.append(competitor_objs[c].p(prices_historical, comp_demand[c], t))
+			prices_this_t.append(competitor_objs[c].p(prices_historical, comp_demand_p_input[c], t))
 		#customer arrival process
 		for k in range(N):
 			rand_arrival_number=np.random.uniform(0,1,1)
@@ -95,6 +98,7 @@ for rep in range(repeats):
 				#
 				if selected_comp_index>-1:
 					#update the demand and profit of the competitor who won the customer's business
+					comp_demand_p_input[selected_comp_index][t]=comp_demand_p_input[selected_comp_index][t]+1
 					comp_demand[selected_comp_index][t]=comp_demand[selected_comp_index][t]+1
 					comp_profit[selected_comp_index][t]=comp_profit[selected_comp_index][t]+prices_this_t[selected_comp_index]
 				#else:
@@ -102,19 +106,34 @@ for rep in range(repeats):
 		#record prices on offer in the current time period
 		for c in range(C):
 			prices_historical[c][t]=prices_this_t[c]
-#plot graphs to see the result
-time_axes=np.arange(T)
-line_styles=np.chararray((C))
-line_styles[0]='r--'
-line_styles[1]='b--'
-line_styles[2]='g--'
-line_styles[3]='k--'
-line_styles[4]='y--'
-plt.figure(1)
+total_comp_profit=[0 for i in range(C)]
+for i in range(C):
+    for t in range(T):
+        total_comp_profit[i]=total_comp_profit[i]+comp_profit[i][t]
+x=np.linspace(0,1000,1000)
+y=comp_profit#
+z=prices_historical        
+#plt.plot(x,y[0,:])
+#plt.plot(x,y[1,:])
+plt.plot(x,y[2,:])
+plt.plot(x,y[3,:])
 
-#plt.plot(comp_demand[:,0],time_axes,'r--',comp_demand[:,1],time_axes,'b--',comp_demand[:,2],time_axes,'g--',comp_demand[:,3],time_axes,'k--',comp_demand[:,4],time_axes,'y--')
-plt.plot(time_axes,comp_demand[0],'r--',time_axes,comp_demand[1],'b--',time_axes,comp_demand[2],'g--',time_axes,comp_demand[3],'k--',time_axes,comp_demand[4],'y--')
+plt.plot(x,z[2,:])
+plt.plot(x,z[3,:])
 
-#for c in range(C):
-	#plt.plot(comp_demand[:,c],time_axes)
-plt.show()
+##plot graphs to see the result
+#time_axes=np.arange(T)
+#line_styles=np.chararray((C))
+#line_styles[0]='r--'
+#line_styles[1]='b--'
+#line_styles[2]='g--'
+#line_styles[3]='k--'
+#line_styles[4]='y--'
+#plt.figure(1)
+#
+##plt.plot(comp_demand[:,0],time_axes,'r--',comp_demand[:,1],time_axes,'b--',comp_demand[:,2],time_axes,'g--',comp_demand[:,3],time_axes,'k--',comp_demand[:,4],time_axes,'y--')
+#plt.plot(time_axes,comp_demand[0],'r--',time_axes,comp_demand[1],'b--',time_axes,comp_demand[2],'g--',time_axes,comp_demand[3],'k--',time_axes,comp_demand[4],'y--')
+#
+##for c in range(C):
+#	#plt.plot(comp_demand[:,c],time_axes)
+#plt.show()

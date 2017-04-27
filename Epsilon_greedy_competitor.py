@@ -13,7 +13,7 @@ class Epsilon_greedy_competitor(Competitor):
 
 
 	#initialization
-	epsilon=0.1 #probability that a random price is chosen
+	epsilon=0.2 #probability that a random price is chosen
 	counts = [0 for col in range(10)] # a vector with 10 entries showing how many times each price is chosen
 	values = [0.0 for col in range(10)] # a vector with 10 entries showing the average reward(demand) obtained by each price
 	index_last_period=0
@@ -32,15 +32,18 @@ class Epsilon_greedy_competitor(Competitor):
 		if t==0: #if it is the first day
 			#store the number of competitors parameter in parameterdump
 			self.C=prices_historical.size
+			self.reset()
 			index=random.randrange(len(self.values)) #choose a random price
 		else: #if it's not the first day 
+                  #update for the demand in the previos time period
+			#print(demand_historical[t-1],',',self.prices[self.index_last_period])  
+			self.values[self.index_last_period]=self.update(self.index_last_period,demand_historical[t-1]*self.prices[self.index_last_period])
 			index=self.select_arm(self.epsilon,self.values) #index is the price chosen at t
 			
-			#update for the demand in the previos time period
-			self.values[index]=self.update(self.index_last_period,demand_historical[t-1])
+			
 		#update last index ready for next time period
 		self.index_last_period=index
-		
+		#print(self.values)  
 		self.counts[index]=self.counts[index]+1 #the number of times this price is chosen increases by 1
 		
 		#after we have chosen price index we receive the demand
@@ -55,12 +58,18 @@ class Epsilon_greedy_competitor(Competitor):
 		return x.index(m)
 
 	def select_arm(self, epsilon,values): #it returns which arm to play
-		if random.random() > epsilon: #it chooses randomly whether it will explore or exploit
+		rand_num=np.random.uniform(0,1)
+		#print(rand_num,',',epsilon)  
+		if rand_num > epsilon: #it chooses randomly whether it will explore or exploit
 			return self.ind_max(values) #it selects the price with the highest demand so far
 		else:
-			return random.randrange(len(values)) #it selects a random arm
+			arm=random.randrange(len(values))
+			#print(arm) 
+			return arm #it selects a random arm
+   
 			
 	def update(self, chosen_arm, reward):
+		#print(chosen_arm)
 		self.counts[chosen_arm] = self.counts[chosen_arm] + 1
 		n = self.counts[chosen_arm]
 		value = self.values[chosen_arm]
@@ -68,3 +77,7 @@ class Epsilon_greedy_competitor(Competitor):
 		return new_value
 
 
+	def reset(self):
+         	self.counts = [0 for col in range(10)] # a vector with 10 entries showing how many times each price is chosen
+         	self.values = [0.0 for col in range(10)] # a vector with 10 entries showing the average reward(demand) obtained by each price
+         	self.index_last_period=0    
