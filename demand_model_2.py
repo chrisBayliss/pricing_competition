@@ -13,7 +13,7 @@ class demand_model_2(object):
 	def winning_competitor(self, prices_this_t, np):#, parameterdump
 		#The customer only sees a random subset of the competitors
 		#and then chooses the cheapest regardless the price
-		Competitor_subset=range(self.C)
+		Competitor_subset=list(range(self.C))
 		
 		#
 		subset_size=round(np.random.uniform(0,1)*self.C)
@@ -21,7 +21,7 @@ class demand_model_2(object):
 		selected_comp_index=-1
 		if subset_size>0:
 			for i in range(self.C-subset_size):
-				Competitor_subset.pop(floor(np.random.uniform(0,1)*len(subset_size)))
+				Competitor_subset.pop(math.floor(np.random.uniform(0,1)*subset_size))
 			
 			#find the lowest price competitor of these
 			min_price=10000000000
