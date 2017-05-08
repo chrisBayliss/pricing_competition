@@ -29,7 +29,7 @@ class demand_profile_competitor(Competitor):
 	#a second implementation of simulated annealing for the demand model parameters to previous observations  
 	#mu=[0,100], signma=[0, 20], B=[0,5], N=[free parameter, multiplicative step length] (for a given model the N that fits best can be directly calculated)
 	parameters_2=3
-	iterations_2=100
+	iterations_2=10
 	initial_step_lengths_2=[]
 	parameter_selection_distribution_2=[0.33, 0.66, 1]
 	param_bounds_2=[[0,100],[0, 20],[0.000000000001,5]]
@@ -70,7 +70,7 @@ class demand_profile_competitor(Competitor):
 		for i in range(self.parameters_2):
 			self.initial_step_lengths_2[i]=(self.times_across_space_2*self.max_param_ranges_2[i])/(self.parameter_selection_distribution_2[i]*unitarySumOfDecreasingStepLengths)
 	
-	def p(self, prices_historical, demand_historical, t):#, parameterdump
+	def p2(self, prices_historical, demand_historical, t):#, parameterdump
 	
 		# if it's the first day
 		#if demand_historical.size == 0:
@@ -124,6 +124,80 @@ class demand_profile_competitor(Competitor):
 			Y=self.parameters_over_time[2][0:t-1]
 			w=np.linalg.lstsq(A,Y)[0]
 			forecast_params.append(t*w[0]+w[1])
+			
+			
+			#sample wtp and derive competitor probability distribution
+			#find optimum d*p
+			popt = self.next_price(forecast_params)
+		
+		return popt
+	
+	#Use linear regression with only the previous 50 data points	
+	def p(self, prices_historical, demand_historical, t):#, parameterdump
+		
+		prev_time_periods_used_in_linear_regression=50
+		PPU=prev_time_periods_used_in_linear_regression
+		
+		# if it's the first day
+		#if demand_historical.size == 0:
+		if t == 0:
+			#store the number of competitors parameter in parameterdump
+			self.C=len(prices_historical)
+			#
+			#
+			self.x=np.zeros((self.C))
+			for i in range(self.C):
+				self.x[i]=i/(self.C-1)
+			
+			#random initial price
+			popt = np.random.uniform(0,100)
+		elif t<2:
+			#random initial price
+			popt = np.random.uniform(0,100)
+		else:
+			#update demand model parameters (correction based on observations)
+			
+			######################################################
+			#THE CURRENT DEMAND PROFILE FITTING MODEL IS A SEVERE BOTTLE NECK
+			#MAYBE MULTI-ARMED BANDITS CAN BE USED TO SEARCH THE DEMAND MODEL SPACE
+			#initial_parameters_2=[self.MU, self.SIGMA, self.B, self.N]
+			
+			#current ones are used as the initial solution
+			#updated_params_2=self.simulatedAnnealing_2(self.iterations_2, self.parameters_2, initial_parameters_2, self.initial_step_lengths_2, self.parameter_selection_distribution_2, self.param_bounds_2, self.t0Factor_2, prices_historical, demand_historical, t, self.np)
+			
+			#self.MU, self.SIGMA, self.B, self.N=updated_params_2
+			#####################################################
+			
+			#prices offered in the previous time period
+			sorted_prices=self.sort(prices_historical[:,t-1])
+			
+			#
+			initial_parameters=[sorted_prices[0], Math.atan(sorted_prices[self.C-1]-sorted_prices[0]), 1]
+			
+			#find the parameters (of price profile=a+b*relative_competitor^c)
+			self.parameters_over_time[:,t-1]=self.simulatedAnnealing(self.iterations, self.parameters, initial_parameters, self.initial_step_lengths, self.parameter_selection_distribution, self.param_bounds, self.t0Factor, self.x, sorted_prices, self.np)
+			
+			#fit parameter forecast model (previous 10 or so)
+			time_periods=min(t-1,PPU)
+			t_first=max(0, t-1-PPU)
+			t_last=max(0, t-1)
+			#A=np.zeros((t-1,2))
+			A=np.zeros((time_periods,2))
+			#print(parameters_over_time[0][0:t])#slicing test
+			A[:,0]=np.arange(0,time_periods)#t-1parameters_over_time[0][0:t]
+			A[:,1]=np.ones((time_periods))#t-1
+			#a
+			Y=self.parameters_over_time[0][t_first:t_last]
+			w=np.linalg.lstsq(A,Y)[0]
+			forecast_params=[(time_periods+1)*w[0]+w[1]]
+			#b
+			Y=self.parameters_over_time[1][t_first:t_last]
+			w=np.linalg.lstsq(A,Y)[0]
+			forecast_params.append((time_periods+1)*w[0]+w[1])
+			#c
+			Y=self.parameters_over_time[2][t_first:t_last]
+			w=np.linalg.lstsq(A,Y)[0]
+			forecast_params.append((time_periods+1)*w[0]+w[1])
 			
 			
 			#sample wtp and derive competitor probability distribution
@@ -300,10 +374,15 @@ class demand_profile_competitor(Competitor):
 		obj=0
 		params[3]=0;
 		#
-		predicted_demands=[0 for i in range(t)]
+		DM_TPs=50;
+		t_first=max(0, t-DM_TPs-1)
+		t_last=t-1
+		
+		#
+		predicted_demands=[0 for i in range(t_first, t_last+1)]
 		sum_of_predicted_demand=0
 		sum_of_actual_demand=0
-		for k in range(t):#or t-1 check this explictly
+		for k in range(t_first, t_last+1):#
 			sum_of_actual_demand=sum_of_actual_demand+demand_historical[k]
 			
 			#generate wtp smaple based on params
@@ -331,19 +410,20 @@ class demand_profile_competitor(Competitor):
 				for i in range(self.C):#for each price
 					demand_vector[i]=demand_vector[i]/sum
 				
-				predicted_demands[k]=demand_vector[self.competitor_number]
-				sum_of_predicted_demand=sum_of_predicted_demand+predicted_demands[k]
+				#print(len(predicted_demands),',',k)
+				predicted_demands[k-t_first]=demand_vector[self.competitor_number]
+				sum_of_predicted_demand=sum_of_predicted_demand+predicted_demands[k-t_first]
 				
-		predicted_portion_of_demand=sum_of_predicted_demand/(t-1)
+		predicted_portion_of_demand=sum_of_predicted_demand/(t_last-t_first+1)
 		if predicted_portion_of_demand>0:
 			params[3]=sum_of_actual_demand/predicted_portion_of_demand
 		
 
 		#multiple predicted demands by predicted N
 		#and calculate demand squared error
-		for k in range(t): 
-			predicted_demands[k]=predicted_demands[k]*params[3]
-			obj=obj+(demand_historical[k]-predicted_demands[k])**2
+		for k in range(t_first, t_last+1): 
+			predicted_demands[k-t_first]=predicted_demands[k-t_first]*params[3]
+			obj=obj+(demand_historical[k]-predicted_demands[k-t_first])**2
 				
 		return (obj, params[3])
 		
@@ -422,4 +502,4 @@ class demand_profile_competitor(Competitor):
 					max_profit=prof
 					next_price=predicted_comp_prices[i]
 		
-		return next_price		
+		return next_price

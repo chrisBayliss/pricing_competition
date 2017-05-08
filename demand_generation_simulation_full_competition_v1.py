@@ -7,6 +7,7 @@ from Fixed_price_competitor import *
 from Random_price_competitor import *
 from Epsilon_greedy_competitor import *
 from demand_profile_competitor import *
+from demand_profile_competitor_exp_smooth import *
 from demand_model_1 import *
 from demand_model_2 import *
 
@@ -39,24 +40,28 @@ epsilon_greedy_comp_1=Epsilon_greedy_competitor(2, epsilon)
 #demand profile competitor
 price_profile_comp_1=demand_profile_competitor(3, np)
 
+#demand profile competitor exponential price profile prediction (with trend)
+price_profile_comp_2=demand_profile_competitor_exp_smooth(4, np)
+
 #add competitors to list
 competitor_objs.append(rand_comp_1)
 competitor_objs.append(fixed_comp_1)
 competitor_objs.append(epsilon_greedy_comp_1)
-#competitor_objs.append(price_profile_comp_1)
+competitor_objs.append(price_profile_comp_1)
+competitor_objs.append(price_profile_comp_2)
 
 C=len(competitor_objs);#number of competitors
 
 #DEMAND MODEL INITIALISATION
 #model parameters
 a=1;
-b=1;
+b=3;
 #normal willingness to pay distribution
 mu=50
-sigma=10
+sigma=5
 #demand model 1
-#dm_1=demand_model_1(C, a, b, mu, sigma)
-dm_1=demand_model_2(C)
+dm_1=demand_model_1(C, a, b, mu, sigma)
+#dm_1=demand_model_2(C)
 
 
 #non-dynamic randomly generated customer prices
@@ -84,7 +89,7 @@ for rep in range(repeats):
 	prices_historical=np.zeros((C,T))
 	#time steps
 	for t in range(T):
-		#print(t)
+		print(t)
 		#get competitor prices for the current time period (current/next: check whic for actual competition. In this version competit)
 		prices_this_t=[]#prices this time period (to avoid contaminating the timeline)
 		for c in range(C):
@@ -110,16 +115,36 @@ total_comp_profit=[0 for i in range(C)]
 for i in range(C):
     for t in range(T):
         total_comp_profit[i]=total_comp_profit[i]+comp_profit[i][t]
+		
+print(total_comp_profit)
+		
 x=np.linspace(0,1000,1000)
 y=comp_profit#
 z=prices_historical        
-#plt.plot(x,y[0,:])
-#plt.plot(x,y[1,:])
-plt.plot(x,y[2,:])
-plt.plot(x,y[3,:])
+rand_prof, = plt.plot(x,y[0,:])
+fixed_prof, = plt.plot(x,y[1,:])
+epsilon_prof, = plt.plot(x,y[2,:])
+demand_prof_prof, = plt.plot(x,y[3,:])
+demand_prof_prof_exp_smooth, = plt.plot(x,y[4,:])
 
-plt.plot(x,z[2,:])
-plt.plot(x,z[3,:])
+plt.legend([rand_prof,fixed_prof,epsilon_prof,demand_prof_prof,demand_prof_prof_exp_smooth], ['rand_prof','fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
+
+plt.figure(1)
+
+plt.show()
+
+#rand_prof_z, = plt.plot(x,z[0,:])
+fixed_prof_z, = plt.plot(x,z[1,:])
+epsilon_prof_z, = plt.plot(x,z[2,:])
+demand_prof_prof_z, = plt.plot(x,z[3,:])
+demand_prof_prof_exp_smooth_z, = plt.plot(x,z[4,:])
+
+plt.legend([fixed_prof_z,epsilon_prof_z,demand_prof_prof_z,demand_prof_prof_exp_smooth_z], ['fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
+
+plt.figure(2)
+
+plt.show()
+
 
 ##plot graphs to see the result
 #time_axes=np.arange(T)
