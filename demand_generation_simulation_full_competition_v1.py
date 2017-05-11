@@ -10,6 +10,8 @@ from demand_profile_competitor import *
 from demand_profile_competitor_exp_smooth import *
 from demand_model_1 import *
 from demand_model_2 import *
+from Mode_price_forecast_competitor import *
+from Sine_competitor import *
 
 
 #x=np.array([[7,8,5],[3,5,7]],np.int32)
@@ -43,12 +45,21 @@ price_profile_comp_1=demand_profile_competitor(3, np)
 #demand profile competitor exponential price profile prediction (with trend)
 price_profile_comp_2=demand_profile_competitor_exp_smooth(4, np)
 
+#mode price forecast competitor
+mode_price_forecast_comp=Mode_price_forecast_competitor(5)
+
+#sine wave competitor
+sine_wave_comp=Sine_competitor(6)
+
+
 #add competitors to list
 competitor_objs.append(rand_comp_1)
 competitor_objs.append(fixed_comp_1)
 competitor_objs.append(epsilon_greedy_comp_1)
-competitor_objs.append(price_profile_comp_1)
-competitor_objs.append(price_profile_comp_2)
+#competitor_objs.append(price_profile_comp_1)
+#competitor_objs.append(price_profile_comp_2)
+competitor_objs.append(mode_price_forecast_comp)
+competitor_objs.append(sine_wave_comp)
 
 C=len(competitor_objs);#number of competitors
 
@@ -115,7 +126,7 @@ total_comp_profit=[0 for i in range(C)]
 for i in range(C):
     for t in range(T):
         total_comp_profit[i]=total_comp_profit[i]+comp_profit[i][t]
-		
+print('full competition results')		
 print(total_comp_profit)
 		
 x=np.linspace(0,1000,1000)
@@ -124,10 +135,13 @@ z=prices_historical
 rand_prof, = plt.plot(x,y[0,:])
 fixed_prof, = plt.plot(x,y[1,:])
 epsilon_prof, = plt.plot(x,y[2,:])
-demand_prof_prof, = plt.plot(x,y[3,:])
-demand_prof_prof_exp_smooth, = plt.plot(x,y[4,:])
+#demand_prof_prof, = plt.plot(x,y[3,:])
+#demand_prof_prof_exp_smooth, = plt.plot(x,y[4,:])
+mode_prof, = plt.plot(x,y[3,:])
+sine_prof, = plt.plot(x,y[4,:])
 
-plt.legend([rand_prof,fixed_prof,epsilon_prof,demand_prof_prof,demand_prof_prof_exp_smooth], ['rand_prof','fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
+#plt.legend([rand_prof,fixed_prof,epsilon_prof,demand_prof_prof,demand_prof_prof_exp_smooth], ['rand_prof','fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
+plt.legend([rand_prof,fixed_prof,epsilon_prof,mode_prof,sine_prof], ['rand_prof','fixed_prof','epsilon_prof','mode_prof','sine_prof'])
 
 plt.figure(1)
 
@@ -136,10 +150,13 @@ plt.show()
 #rand_prof_z, = plt.plot(x,z[0,:])
 fixed_prof_z, = plt.plot(x,z[1,:])
 epsilon_prof_z, = plt.plot(x,z[2,:])
-demand_prof_prof_z, = plt.plot(x,z[3,:])
-demand_prof_prof_exp_smooth_z, = plt.plot(x,z[4,:])
+#demand_prof_prof_z, = plt.plot(x,z[3,:])
+#demand_prof_prof_exp_smooth_z, = plt.plot(x,z[4,:])
+mode_prof_z, = plt.plot(x,z[3,:])
+sine_prof_z, = plt.plot(x,z[4,:])
 
-plt.legend([fixed_prof_z,epsilon_prof_z,demand_prof_prof_z,demand_prof_prof_exp_smooth_z], ['fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
+#plt.legend([fixed_prof_z,epsilon_prof_z,demand_prof_prof_z,demand_prof_prof_exp_smooth_z], ['fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
+plt.legend([fixed_prof_z,epsilon_prof_z,mode_prof_z,sine_prof_z], ['fixed_prof','epsilon_prof','mode_prof','sine_prof'])
 
 plt.figure(2)
 
