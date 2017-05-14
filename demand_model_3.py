@@ -2,13 +2,17 @@ import math
 #from future import division
 import numpy as np
 
-class demand_model_2(object):
+class demand_model_3(object):
 
 	C=2
+	a=1
+	b=2
 	
 
-	def __init__(self, competitors):
+	def __init__(self, competitors, a, b):
 		self.C=competitors
+		self.a=a
+		self.b=b
 	
 	def winning_competitor(self, prices_this_t, np):#, parameterdump
 		#The customer only sees a random subset of the competitors
@@ -16,16 +20,12 @@ class demand_model_2(object):
 		Competitor_subset=list(range(self.C))
 		
 		#
-		subset_size=round(np.random.uniform(0,1)*self.C)
-		
-		#print(subset_size)
+		subset_size=self.a+round(np.random.uniform(0,1)*(self.b-self.a))
 		
 		selected_comp_index=-1
 		if subset_size>0:
 			for i in range(self.C-subset_size):
-				pop_ind=math.floor(np.random.uniform(0,1)*(self.C-i))
-				Competitor_subset.pop(pop_ind)#jim=
-				#print(Competitor_subset,', ',i,', ',pop_ind,', ',(self.C-1-i),', ',jim)
+				Competitor_subset.pop(math.floor(np.random.uniform(0,1)*(self.C-i)))
 			
 			#find the lowest price competitor of these
 			min_price=10000000000

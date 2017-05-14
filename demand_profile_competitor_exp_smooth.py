@@ -212,7 +212,7 @@ class demand_profile_competitor_exp_smooth(Competitor):
 					best_solution[3]=n
 			iteration=iteration+1
 		#print("timesNonImprovingSolAccepted=",timesNonImprovingSolAccepted);
-		print(best_solution)
+		#print(best_solution)
 		
 		#
 		
@@ -235,15 +235,16 @@ class demand_profile_competitor_exp_smooth(Competitor):
 		non_zero_demand_periods=0
 		#
 		wtp_sample_values=[0 for i in range(self.wtp_sample_size)]
+		for i in range(self.wtp_sample_size):
+			wtp_sample_values[i]=self.quantileFunction(i/(self.wtp_sample_size-1), params[0], params[1])
+
 		demand_vector=[0 for i in range(self.C)]
 		for k in range(t_first, t_last+1):#
 			sum_of_actual_demand=sum_of_actual_demand+demand_historical[k]
 			
 			#generate wtp smaple based on params
 			
-			for i in range(self.wtp_sample_size):
-				wtp_sample_values[i]=self.quantileFunction(i/(self.wtp_sample_size-1), params[0], params[1])
-
+			
 			
 		
 			#construct the demand distribution

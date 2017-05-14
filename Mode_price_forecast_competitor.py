@@ -14,6 +14,8 @@ class Mode_price_forecast_competitor(Competitor):
 	mode_intervals=[10,20,30,40,50,60,70,80,90,100]
 	mode_interval_size=10
 	mode_interval_frequencies=[0]*10
+	
+	other_prices=[]
 
 	def __init__(self, competitor_number):
 		Competitor.__init__(self, competitor_number)
@@ -25,16 +27,24 @@ class Mode_price_forecast_competitor(Competitor):
 			#store the number of competitors parameter in parameterdump
 			self.C=len(prices_historical)
 			
-			self.Base_value=[[0 for j in range(self.C)] for i in range(self.T)]
-			self.Trend=[[0 for j in range(self.C)] for i in range(self.T)]
+			self.Base_value=[[0 for j in range(self.C-1)] for i in range(self.T)]
+			self.Trend=[[0 for j in range(self.C-1)] for i in range(self.T)]
 			
-			self.prices_next_t=[0 for i in range(self.C)]
+			self.prices_next_t=[0 for i in range(self.C-1)]
+			
+			self.other_prices=[0]*(self.C-1)
 			
 			popt = np.random.uniform(0,100)
 		elif t<2:
 			#initialise base value (trend initialised to 0)
 			#for c in range(self.C):
-			[sorted_prices, ind_order]=self.sort(prices_historical[:,t-1])
+			counter=0
+			for i in range(self.C):
+				if i!=self.competitor_number:
+					self.other_prices[counter]=prices_historical[i,t-1]
+					counter=counter+1
+			
+			[sorted_prices, ind_order]=self.sort(self.other_prices)#prices_historical[:,t-1]
 			self.Base_value[0]=sorted_prices
 			
 			#random initial price
@@ -42,7 +52,13 @@ class Mode_price_forecast_competitor(Competitor):
 		else:
 			
 			#prices offered in the previous time period
-			[sorted_prices, ind_order]=self.sort(prices_historical[:,t-1])
+			counter=0
+			for i in range(self.C):
+				if i!=self.competitor_number:
+					self.other_prices[counter]=prices_historical[i,t-1]
+					counter=counter+1
+			
+			[sorted_prices, ind_order]=self.sort(self.other_prices)#prices_historical[:,t-1]
 			
 			
 			forecast_price_set=self.update_exp_smooth_params_return_forecast_prices(sorted_prices, t)
@@ -70,7 +86,7 @@ class Mode_price_forecast_competitor(Competitor):
 		
 	#sorted prices could provide a more stable model, especially as competitor prices will not in general be modelled well with an exponential smoothing model for each individual customer 
 	def update_exp_smooth_params_return_forecast_prices(self, comp_prices_last_t, t):
-		for c in range(self.C):
+		for c in range(self.C-1):
 			self.Base_value[t-1][c]=(self.alpha*comp_prices_last_t[c])+((1-self.alpha)*(self.Base_value[t-2][c]+self.Trend[t-2][c]))
 			
 			self.Trend[t-1][c]=(self.beta*(self.Base_value[t-1][c]-self.Base_value[t-2][c]))+((1-self.beta)*self.Trend[t-2][c])
@@ -78,22 +94,22 @@ class Mode_price_forecast_competitor(Competitor):
 			self.prices_next_t[c]=max(0, min(100,self.Base_value[t-2][c]+self.Trend[t-1][c]))
 		return self.prices_next_t
 		
-	def sort(self, A):
-		size=len(A)
-		C=list(A)
-		B=[0]*len(A)
+	def sort(self, F):
+		size=len(F)
+		E=list(F)
+		B=[0]*len(F)
 		ind_ord=[0 for i in range(size)]
 		for i in range(size):
 			B[i]=i
 		D=[0 for i in range(size)]
 		for i in range(size):
-			smallest=C[0]
+			smallest=E[0]
 			position=0
 			for j in range(1,size-i):
-				if C[j]<smallest:
-					smallest=C[j]
+				if E[j]<smallest:
+					smallest=E[j]
 					position=j
 			D[i]=smallest
-			C.pop(position)
+			E.pop(position)
 			ind_ord[i]=B.pop(position)
 		return [D,ind_ord]

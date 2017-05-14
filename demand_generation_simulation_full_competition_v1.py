@@ -8,8 +8,10 @@ from Random_price_competitor import *
 from Epsilon_greedy_competitor import *
 from demand_profile_competitor import *
 from demand_profile_competitor_exp_smooth import *
+from demand_profile_competitor_cheapest_DM_exp_smooth import *
 from demand_model_1 import *
 from demand_model_2 import *
+from demand_model_3 import *
 from Mode_price_forecast_competitor import *
 from Sine_competitor import *
 
@@ -18,7 +20,7 @@ from Sine_competitor import *
 #plt.plot(x[:,0],x[:,1])
 #plt.show()
 
-repeats=10;
+repeats=2;
 
 C=2;#number of competitors
 
@@ -40,10 +42,13 @@ epsilon=0.1
 epsilon_greedy_comp_1=Epsilon_greedy_competitor(2, epsilon)
 
 #demand profile competitor
-price_profile_comp_1=demand_profile_competitor(3, np)
+#price_profile_comp_1=demand_profile_competitor(3, np)
 
 #demand profile competitor exponential price profile prediction (with trend)
-price_profile_comp_2=demand_profile_competitor_exp_smooth(4, np)
+price_profile_comp_2=demand_profile_competitor_exp_smooth(3, np)
+
+#demand profile model (own prices removed from exponential smoothing)
+price_profile_comp_3=demand_profile_competitor_cheapest_DM_exp_smooth(4, np)
 
 #mode price forecast competitor
 mode_price_forecast_comp=Mode_price_forecast_competitor(5)
@@ -57,7 +62,8 @@ competitor_objs.append(rand_comp_1)
 competitor_objs.append(fixed_comp_1)
 competitor_objs.append(epsilon_greedy_comp_1)
 #competitor_objs.append(price_profile_comp_1)
-#competitor_objs.append(price_profile_comp_2)
+competitor_objs.append(price_profile_comp_2)
+competitor_objs.append(price_profile_comp_3)
 competitor_objs.append(mode_price_forecast_comp)
 competitor_objs.append(sine_wave_comp)
 
@@ -69,10 +75,11 @@ a=1;
 b=3;
 #normal willingness to pay distribution
 mu=50
-sigma=5
+sigma=20
 #demand model 1
 dm_1=demand_model_1(C, a, b, mu, sigma)
-#dm_1=demand_model_2(C)
+#dm_1=demand_model_2(C)#cheapset in uniform random subset sizes (for every arriving customer)
+#dm_1=demand_model_3(C, 2, C)#parameterised version of the above, a=min subset size, b=max subset size
 
 
 #non-dynamic randomly generated customer prices
@@ -136,12 +143,13 @@ rand_prof, = plt.plot(x,y[0,:])
 fixed_prof, = plt.plot(x,y[1,:])
 epsilon_prof, = plt.plot(x,y[2,:])
 #demand_prof_prof, = plt.plot(x,y[3,:])
-#demand_prof_prof_exp_smooth, = plt.plot(x,y[4,:])
-mode_prof, = plt.plot(x,y[3,:])
-sine_prof, = plt.plot(x,y[4,:])
+demand_prof_exp_smooth, = plt.plot(x,y[3,:])
+demand_prof_cheap_subset, = plt.plot(x,y[4,:])
+mode_prof, = plt.plot(x,y[5,:])
+sine_prof, = plt.plot(x,y[6,:])
 
 #plt.legend([rand_prof,fixed_prof,epsilon_prof,demand_prof_prof,demand_prof_prof_exp_smooth], ['rand_prof','fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
-plt.legend([rand_prof,fixed_prof,epsilon_prof,mode_prof,sine_prof], ['rand_prof','fixed_prof','epsilon_prof','mode_prof','sine_prof'])
+plt.legend([rand_prof,fixed_prof,epsilon_prof,demand_prof_exp_smooth,demand_prof_cheap_subset,mode_prof,sine_prof], ['rand_prof','fixed_prof','epsilon_prof','demand_prof_prof_exp_smooth','demand_prof_prof_cheap_subset','mode_prof','sine_prof'])
 
 plt.figure(1)
 
@@ -151,12 +159,13 @@ plt.show()
 fixed_prof_z, = plt.plot(x,z[1,:])
 epsilon_prof_z, = plt.plot(x,z[2,:])
 #demand_prof_prof_z, = plt.plot(x,z[3,:])
-#demand_prof_prof_exp_smooth_z, = plt.plot(x,z[4,:])
-mode_prof_z, = plt.plot(x,z[3,:])
-sine_prof_z, = plt.plot(x,z[4,:])
+demand_prof_exp_smooth_z, = plt.plot(x,z[3,:])
+demand_prof_cheap_subset_z, = plt.plot(x,z[4,:])
+mode_prof_z, = plt.plot(x,z[5,:])
+sine_prof_z, = plt.plot(x,z[6,:])
 
 #plt.legend([fixed_prof_z,epsilon_prof_z,demand_prof_prof_z,demand_prof_prof_exp_smooth_z], ['fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
-plt.legend([fixed_prof_z,epsilon_prof_z,mode_prof_z,sine_prof_z], ['fixed_prof','epsilon_prof','mode_prof','sine_prof'])
+plt.legend([fixed_prof_z,epsilon_prof_z,demand_prof_exp_smooth_z,demand_prof_cheap_subset_z,mode_prof_z,sine_prof_z], ['fixed','epsilon','demand_prof_exp_smooth','demand_prof_cheap_subset','mode','sine'])
 
 plt.figure(2)
 
