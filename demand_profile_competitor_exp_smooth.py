@@ -288,25 +288,25 @@ class demand_profile_competitor_exp_smooth(Competitor):
 				
 		return (obj, params[3])
 		
-	def sort(self, A):
-		size=len(A)
-		C=list(A)
-		B=[0]*len(A)
+	def sort(self, AA):
+		size=len(AA)
+		EE=list(AA)
+		BB=[0]*len(AA)
 		ind_ord=[0 for i in range(size)]
 		for i in range(size):
-			B[i]=i
-		D=[0 for i in range(size)]
+			BB[i]=i
+		DD=[0 for i in range(size)]
 		for i in range(size):
-			smallest=C[0]
+			smallest=EE[0]
 			position=0
 			for j in range(1,size-i):
-				if C[j]<smallest:
-					smallest=C[j]
+				if EE[j]<smallest:
+					smallest=EE[j]
 					position=j
-			D[i]=smallest
-			C.pop(position)
-			ind_ord[i]=B.pop(position)
-		return [D,ind_ord]
+			DD[i]=smallest
+			EE.pop(position)
+			ind_ord[i]=BB.pop(position)
+		return [DD,ind_ord]
 	
 	#normal distribution (equations from wikipedia)
 	def inverseErrorFunctionApprox(self, z):

@@ -14,6 +14,8 @@ from demand_model_2 import *
 from demand_model_3 import *
 from Mode_price_forecast_competitor import *
 from Sine_competitor import *
+from Two_armed_bandit import *
+from Three_armed_bandit import *
 
 
 #x=np.array([[7,8,5],[3,5,7]],np.int32)
@@ -56,6 +58,13 @@ mode_price_forecast_comp=Mode_price_forecast_competitor(5)
 #sine wave competitor
 sine_wave_comp=Sine_competitor(6)
 
+#two armed badit: MAB applied to two demand models whose parameters are constantly be fit to the data
+#This should mean that this approach should work nearly as well as each demand model used in its own environment
+demand_model_bandit_comp=Two_armed_bandit(7,0.2,np) 
+
+#three armed badit: MAB applied to two demand models whose parameters are constantly be fit to the data
+#This should mean that this approach should work nearly as well as each demand model used in its own environment
+demand_model_bandit_comp_2=Three_armed_bandit(8,0.2,0.2,np)
 
 #add competitors to list
 competitor_objs.append(rand_comp_1)
@@ -65,7 +74,9 @@ competitor_objs.append(epsilon_greedy_comp_1)
 competitor_objs.append(price_profile_comp_2)
 competitor_objs.append(price_profile_comp_3)
 competitor_objs.append(mode_price_forecast_comp)
-competitor_objs.append(sine_wave_comp)
+competitor_objs.append(sine_wave_comp)#
+competitor_objs.append(demand_model_bandit_comp)
+competitor_objs.append(demand_model_bandit_comp_2)
 
 C=len(competitor_objs);#number of competitors
 
@@ -77,9 +88,9 @@ b=3;
 mu=50
 sigma=20
 #demand model 1
-dm_1=demand_model_1(C, a, b, mu, sigma)
+#dm_1=demand_model_1(C, a, b, mu, sigma)
 #dm_1=demand_model_2(C)#cheapset in uniform random subset sizes (for every arriving customer)
-#dm_1=demand_model_3(C, 2, C)#parameterised version of the above, a=min subset size, b=max subset size
+dm_1=demand_model_3(C, 2, C)#parameterised version of the above, a=min subset size, b=max subset size
 
 
 #non-dynamic randomly generated customer prices
@@ -147,9 +158,11 @@ demand_prof_exp_smooth, = plt.plot(x,y[3,:])
 demand_prof_cheap_subset, = plt.plot(x,y[4,:])
 mode_prof, = plt.plot(x,y[5,:])
 sine_prof, = plt.plot(x,y[6,:])
+two_arm_prof, = plt.plot(x,y[7,:])
+three_arm_prof, = plt.plot(x,y[8,:])
 
 #plt.legend([rand_prof,fixed_prof,epsilon_prof,demand_prof_prof,demand_prof_prof_exp_smooth], ['rand_prof','fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
-plt.legend([rand_prof,fixed_prof,epsilon_prof,demand_prof_exp_smooth,demand_prof_cheap_subset,mode_prof,sine_prof], ['rand_prof','fixed_prof','epsilon_prof','demand_prof_prof_exp_smooth','demand_prof_prof_cheap_subset','mode_prof','sine_prof'])
+plt.legend([rand_prof,fixed_prof,epsilon_prof,demand_prof_exp_smooth,demand_prof_cheap_subset,mode_prof,sine_prof,two_arm_prof,three_arm_prof], ['rand_prof','fixed_prof','epsilon_prof','demand_prof_prof_exp_smooth','demand_prof_prof_cheap_subset','mode_prof','sine_prof','two_arm_prof','three_arm_prof'])
 
 plt.figure(1)
 
@@ -163,9 +176,11 @@ demand_prof_exp_smooth_z, = plt.plot(x,z[3,:])
 demand_prof_cheap_subset_z, = plt.plot(x,z[4,:])
 mode_prof_z, = plt.plot(x,z[5,:])
 sine_prof_z, = plt.plot(x,z[6,:])
+two_arm_prof_z, = plt.plot(x,z[7,:]) 
+three_arm_prof_z, = plt.plot(x,z[7,:]) 
 
 #plt.legend([fixed_prof_z,epsilon_prof_z,demand_prof_prof_z,demand_prof_prof_exp_smooth_z], ['fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
-plt.legend([fixed_prof_z,epsilon_prof_z,demand_prof_exp_smooth_z,demand_prof_cheap_subset_z,mode_prof_z,sine_prof_z], ['fixed','epsilon','demand_prof_exp_smooth','demand_prof_cheap_subset','mode','sine'])
+plt.legend([fixed_prof_z,epsilon_prof_z,demand_prof_exp_smooth_z,demand_prof_cheap_subset_z,mode_prof_z,sine_prof_z, two_arm_prof_z,three_arm_prof_z], ['fixed','epsilon','demand_prof_exp_smooth','demand_prof_cheap_subset','mode','sine','two_arm','three_arm'])
 
 plt.figure(2)
 

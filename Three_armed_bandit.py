@@ -1,8 +1,9 @@
 from Competitor import Competitor
 import math as Math
+import os, math, operator, random, csv, scipy
 import numpy as np
 
-class demand_profile_competitor_cheapest_DM_exp_smooth(Competitor):
+class Three_armed_bandit(Competitor):
 	Base_value=[]
 	Trend=[]
 	prices_next_t=[]
@@ -73,13 +74,30 @@ class demand_profile_competitor_cheapest_DM_exp_smooth(Competitor):
 	
 	PPU=50
 	
+	epsilon_1=0.2 #probability that a random price is chosen
+	counts_1 = [0 for col in range(3)] # a vector with 10 entries showing how many times each price is chosen
+	values_1 = [0.0 for col in range(3)] # a vector with 10 entries showing the average reward(demand) obtained by each price
+	index_last_period_1=0
+	
+	
+	epsilon_2=0.2 #probability that a random price is chosen
+	counts_2 = [0 for col in range(10)] # a vector with 10 entries showing how many times each price is chosen
+	values_2 = [0.0 for col in range(10)] # a vector with 10 entries showing the average reward(demand) obtained by each price
+	index_last_period_2=0
+	#the code is for epsilon-greedy
+	#in epsilon-decreasing epsilon=min{1,epsilon0/t}
 
-	def __init__(self, competitor_number, np):
+	#prices_2=[10, 20, 30, 40, 50, 60, 70, 80, 90, 100] #we test these 10 prices to compare their demand 
+	prices_2=[5,15,25,35,45,55,65,75,85,95]
+
+	def __init__(self, competitor_number, epsilon_1, epsilon_2, np):
 		Competitor.__init__(self, competitor_number)
 		
 		self.competitor_number=competitor_number
 		self.np=np
 		
+		self.epsilon_1=epsilon_1
+		self.epsilon_2=epsilon_2
 		
 		#wtp demand model
 		unitarySumOfDecreasingStepLengths=0
@@ -132,8 +150,14 @@ class demand_profile_competitor_cheapest_DM_exp_smooth(Competitor):
 			
 			self.other_prices=[0 for i in range(self.C-1)]
 			
-			#random initial price
+			self.reset()
+			
 			popt = np.random.uniform(0,100)
+			
+			#MAB_2
+			index_2=max(0, min(len(self.prices_2)-1, math.floor(popt/10)))
+			#self.counts_2[index_2]=self.counts_2[index_2]+1 
+			self.index_last_period_2=index_2
 		elif t<2:
 			#initialise base value (trend initialised to 0)
 			#for c in range(self.C):
@@ -146,35 +170,62 @@ class demand_profile_competitor_cheapest_DM_exp_smooth(Competitor):
 			[sorted_prices, ind_order]=self.sort(self.other_prices)#prices_historical[:,t-1]
 			self.Base_value[0]=sorted_prices
 			
+			##MAB_2 update
+			
+			
 			#random initial price
 			popt = np.random.uniform(0,100)
+			
+			
+			#update MAB_2
+			self.values_2[self.index_last_period_2]=self.update_2(self.index_last_period_2,demand_historical[t-1]*prices_historical[self.competitor_number,t-1])
+			#
+			index_2=max(0, min(len(self.prices_2)-1, math.floor(popt/10)))
+			#self.counts_2[index_2]=self.counts_2[index_2]+1 #the number of times this price is chosen increases by 1
+			self.index_last_period_2=index_2
+			
 		else:
 			#update demand model parameters (correction based on observations)
+			#print('prices_historical[self.competitor_number,t-1]=',prices_historical[self.competitor_number,t-1])
+			if t>2:
+				self.values_1[self.index_last_period_1]=self.update(self.index_last_period_1,demand_historical[t-1]*prices_historical[self.competitor_number,t-1])
+				index=self.select_arm(self.epsilon_1,self.values_1) #index is the price chosen at t
+			elif t==2:
+				index=random.randrange(len(self.values_1)) #choose a random price
+			#print(self.values_1,', ',index)
 			
+			#counts
+			#self.counts_1[index]=self.counts_1[index]+1 #the number of times this price is chosen increases by 1
 			
-			if self.demand_model_to_use==1:
-				#DEMAND MODEL 1
-				######################################################
-				#THE CURRENT DEMAND PROFILE FITTING MODEL IS A SEVERE BOTTLE NECK
-				#MAYBE MULTI-ARMED BANDITS CAN BE USED TO SEARCH THE DEMAND MODEL SPACE
-				initial_parameters_2=[self.MU, self.SIGMA, self.B, self.N]
+			self.demand_model_to_use=index+1
+			self.index_last_period_1=index
+			
+			#if self.demand_model_to_use==1:
+			
+			#DEMAND MODEL 1
+			######################################################
+			#THE CURRENT DEMAND PROFILE FITTING MODEL IS A SEVERE BOTTLE NECK
+			#MAYBE MULTI-ARMED BANDITS CAN BE USED TO SEARCH THE DEMAND MODEL SPACE
+			initial_parameters_2=[self.MU, self.SIGMA, self.B, self.N]
+			
+			#current ones are used as the initial solution
+			updated_params_2=self.simulatedAnnealing_2(self.iterations_2, self.parameters_2, initial_parameters_2, self.initial_step_lengths_2, self.parameter_selection_distribution_2, self.param_bounds_2, self.t0Factor_2, prices_historical, demand_historical, t, self.np)
+			
+			[self.MU, self.SIGMA, self.B, self.N]=updated_params_2
+			#####################################################
 				
-				#current ones are used as the initial solution
-				updated_params_2=self.simulatedAnnealing_2(self.iterations_2, self.parameters_2, initial_parameters_2, self.initial_step_lengths_2, self.parameter_selection_distribution_2, self.param_bounds_2, self.t0Factor_2, prices_historical, demand_historical, t, self.np)
-				
-				[self.MU, self.SIGMA, self.B, self.N]=updated_params_2
-				#####################################################
-			elif self.demand_model_to_use==2:
-				#DEMAND MODEL 2
-				######################################################
-				#MAYBE MULTI-ARMED BANDITS CAN BE USED TO SEARCH THE DEMAND MODEL SPACE
-				initial_parameters_3=[self.A_3, self.B_3, self.N]
-				
-				#current ones are used as the initial solution
-				updated_params_3=self.simulatedAnnealing_3(self.iterations_3, self.parameters_3, initial_parameters_3, self.initial_step_lengths_3, self.parameter_selection_distribution_3, self.param_bounds_3, self.t0Factor_3, prices_historical, demand_historical, t, self.np)
-				
-				[self.A_3, self.B_3, self.N]=updated_params_3
-				#####################################################
+			#elif self.demand_model_to_use==2:
+			
+			#DEMAND MODEL 2
+			######################################################
+			#MAYBE MULTI-ARMED BANDITS CAN BE USED TO SEARCH THE DEMAND MODEL SPACE
+			initial_parameters_3=[self.A_3, self.B_3, self.N]
+			
+			#current ones are used as the initial solution
+			updated_params_3=self.simulatedAnnealing_3(self.iterations_3, self.parameters_3, initial_parameters_3, self.initial_step_lengths_3, self.parameter_selection_distribution_3, self.param_bounds_3, self.t0Factor_3, prices_historical, demand_historical, t, self.np)
+			
+			[self.A_3, self.B_3, self.N]=updated_params_3
+			#####################################################
 			
 			
 			
@@ -182,9 +233,12 @@ class demand_profile_competitor_cheapest_DM_exp_smooth(Competitor):
 			
 			
 			#demand model epsilon greedy is one to try
+			#MAB_2 update reward vector
+			#print('index=',self.index_last_period_2)
+			self.values_2[self.index_last_period_2]=self.update_2(self.index_last_period_2,demand_historical[t-1]*prices_historical[self.competitor_number,t-1])
 			
 			
-			
+
 			#prices offered in the previous time period
 			counter=0
 			for i in range(self.C):
@@ -201,9 +255,19 @@ class demand_profile_competitor_cheapest_DM_exp_smooth(Competitor):
 			#print(ind_order)
 			if self.demand_model_to_use==1:
 				popt = self.next_price(forecast_price_set)
+				index_2=max(0, min(len(self.prices_2)-1, math.floor(popt/10)))
 			elif self.demand_model_to_use==2:
 				popt = self.next_price_demand_model_2(forecast_price_set)
-		
+				index_2=max(0, min(len(self.prices_2)-1, math.floor(popt/10)))
+			elif self.demand_model_to_use==3:	
+				index_2=self.select_arm(self.epsilon_2,self.values_2) #index is the price chosen at t
+				popt = self.prices_2[index_2]
+				
+			#self.counts_2[index_2]=self.counts_2[index_2]+1 #the number of times this price is chosen increases by 1
+			#update last index ready for next time period
+			self.index_last_period_2=index_2	
+			#print('popt=',popt)
+			
 		return popt
 		
 	
@@ -729,13 +793,54 @@ class demand_profile_competitor_cheapest_DM_exp_smooth(Competitor):
 				next_price=comp_price-1
 		
 		#the profit associated with being the most expensive
-		#sorted_forecast_prices[self.C-2]+5
-		prof_of_overcut=(100)*rank_demand[self.C-1]
+		#(100)
+		prof_of_overcut=sorted_forecast_prices[self.C-2]+5*rank_demand[self.C-1]
 		if prof_of_overcut>max_prof:
 			max_prof=prof_of_overcut
-			next_price=100#sorted_forecast_prices[self.C-2]+5
+			next_price=sorted_forecast_prices[self.C-2]+5#100#
 		
 		#print(next_price)
 		
 		return next_price
+	
+
+		#twp-armed bandit methods
+	def ind_max(self, x):
+		m = max(x)
+		return x.index(m)
+
+	def select_arm(self, epsilon,values): #it returns which arm to play
+		rand_num=np.random.uniform(0,1)
+		#print(rand_num,',',epsilon)  
+		if rand_num > epsilon: #it chooses randomly whether it will explore or exploit
+			return self.ind_max(values) #it selects the price with the highest demand so far
+		else:
+			arm=random.randrange(len(values))
+			#print(arm) 
+			return arm #it selects a random arm
+   
+			
+	def update(self, chosen_arm, reward):
+		#print(chosen_arm)
+		self.counts_1[chosen_arm] = self.counts_1[chosen_arm] + 1
+		n = self.counts_1[chosen_arm]
+		value = self.values_1[chosen_arm]
+		new_value = ((n - 1) / float(n)) * value + (1 / float(n)) * reward #weighted average
+		return new_value
+	
+	def update_2(self, chosen_arm, reward):
+		#print(chosen_arm)
+		self.counts_2[chosen_arm] = self.counts_2[chosen_arm] + 1
+		n = self.counts_2[chosen_arm]
+		value = self.values_2[chosen_arm]
+		new_value = ((n - 1) / float(n)) * value + (1 / float(n)) * reward #weighted average
+		return new_value
+
+	def reset(self):
+		self.counts_1 = [0 for col in range(3)] # a vector with 10 entries showing how many times each price is chosen
+		self.values_1 = [0.0 for col in range(3)] # a vector with 10 entries showing the average reward(demand) obtained by each price
+		self.index_last_period_1=0 
 		
+		self.counts_2 = [0 for col in range(10)] # a vector with 10 entries showing how many times each price is chosen
+		self.values_2 = [0.0 for col in range(10)] # a vector with 10 entries showing the average reward(demand) obtained by each price
+		self.index_last_period_2=0 
