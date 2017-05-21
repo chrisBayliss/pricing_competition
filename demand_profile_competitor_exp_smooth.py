@@ -11,19 +11,22 @@ class demand_profile_competitor_exp_smooth(Competitor):
 	beta=0.2
 	
 	#estimated model parameters (these need to be updated to values consistent with previous observations)
-	initB=2
-	#assumed normal distribution
-	initSIGMA=10
-	initMU=50
-	
-	initN=1;
+	initB=1
+	initSIGMA=20
+	initMU=70
+	initN=1
 	
 	B=2
-	#assumed normal distribution
 	SIGMA=10
 	MU=50
+	N=1
 	
-	N=1;
+	PPU=50
+	
+	WTPSS=25
+	ZScores=[-2.0525351784516745,-1.5547210264744065,-1.2817128991385738,-1.0805041114062115,-0.9155202196139449,-0.7723070825166194,-0.6434209650126668,-0.5244456523403735,-0.4124867055596822,-0.30549085942962084,-0.2018964860015789,-0.10043409790833129,0.0,0.10043409790833129,0.2018964860015789,0.30549085942962084,0.4124867055596822,0.5244456523403735,0.6434209650126668,0.7723070825166194,0.9155202196139449,1.0805041114062115,1.2817128991385738,1.5547210264744071,2.0525351784516745,]
+	#WTPSS=100
+	#ZScores=[-2.5724655387049906,-2.1684599309842865,-1.9590489380232072,-1.811392700417685,-1.6951255314671452,-1.5980814841640125,-1.5140978937571379,-1.4396003356430906,-1.372321668169808,-1.3107291349449381,-1.2537355211790808,-1.2005401847480213,-1.1505354841879978,-1.1032486849492416,-1.058304292774104,-1.015398735127869,-0.9742828165154709,-0.9347492395472065,-0.8966235262394615,-0.8597572811063086,-0.8240231038913786,-0.7893106877951082,-0.7555237849300253,-0.7225778163747846,-0.6903979682827458,-0.6589176592955888,-0.6280772949785438,-0.5978232465333634,-0.5681070065006705,-0.5388844854043503,-0.5101154215692982,-0.4817628825109444,-0.4537928409385943,-0.42617381194541953,-0.39887654066729156,-0.371873731789539,-0.3451398139158496,-0.3186507330984484,-0.2923837708445634,-0.2663173827224585,-0.24043105433669845,-0.21470517196169633,-0.18912090554128483,-0.1636601021005565,-0.13830518789028187,-0.113039077805617,-0.08784509079950176,-0.06270687015391799,-0.03760830758515286,-0.01253347024610061,0.01253347024610061,0.03760830758515286,0.06270687015391799,0.08784509079950176,0.113039077805617,0.13830518789028187,0.1636601021005565,0.18912090554128483,0.21470517196169633,0.24043105433669845,0.2663173827224585,0.2923837708445634,0.3186507330984484,0.3451398139158496,0.371873731789539,0.39887654066729156,0.42617381194541953,0.4537928409385943,0.4817628825109444,0.5101154215692982,0.5388844854043503,0.5681070065006705,0.5978232465333634,0.6280772949785438,0.6589176592955888,0.6903979682827458,0.7225778163747846,0.7555237849300253,0.7893106877951082,0.8240231038913786,0.8597572811063086,0.8966235262394625,0.9347492395472065,0.9742828165154709,1.015398735127869,1.058304292774104,1.1032486849492416,1.1505354841879978,1.2005401847480213,1.2537355211790808,1.3107291349449381,1.3723216681698085,1.439600335643091,1.5140978937571383,1.5980814841640127,1.6951255314671456,1.8113927004176849,1.9590489380232072,2.1684599309842865,2.5724655387049906]
 	
 	#a second implementation of simulated annealing for the demand model parameters to previous observations  
 	#mu=[0,100], signma=[0, 20], B=[0,5], N=[free parameter, multiplicative step length] (for a given model the N that fits best can be directly calculated)
@@ -33,10 +36,10 @@ class demand_profile_competitor_exp_smooth(Competitor):
 	#parameter_selection_distribution_2=[0.33, 0.66, 1]
 	parameter_selection_distribution_2=[0.33,0.66, 1]
 	parameter_selection_distribution_2_step_len=[0.33,0.33, 0.33]
-	param_bounds_2=[[0.000000000001,100],[0.000000000001, 50],[0.000000000001,5]]
-	t0Factor_2=0.0000000001
-	max_param_ranges_2=[100, 50, 5]
-	times_across_space_2=0.0005;#using a linearly decreasing time step
+	param_bounds_2=[[0.000000000001,100],[1, 30],[0.1,5]]
+	t0Factor_2=0.001
+	max_param_ranges_2=[100, 29, 4.9]
+	times_across_space_2=6;#using a linearly decreasing time step
 	
 	#
 	wtp_sample_size=10
@@ -57,8 +60,8 @@ class demand_profile_competitor_exp_smooth(Competitor):
 		
 		
 		unitarySumOfDecreasingStepLengths=0
-		for i in range(self.iterations_2):
-			unitarySumOfDecreasingStepLengths=unitarySumOfDecreasingStepLengths+(1-(i/self.iterations_2))
+		for i in range(self.iterations_2*1000):
+			unitarySumOfDecreasingStepLengths=unitarySumOfDecreasingStepLengths+(1-(i/(self.iterations_2*1000)))
 		
 		self.initial_step_lengths_2=np.zeros((self.parameters_2))
 		for i in range(self.parameters_2):
@@ -85,7 +88,6 @@ class demand_profile_competitor_exp_smooth(Competitor):
 			self.MU=self.initMU
 			self.SIGMA=self.initSIGMA
 			self.B=self.initB
-			self.N=self.initN
 			
 			#random initial price
 			popt = np.random.uniform(0,100)
@@ -157,7 +159,9 @@ class demand_profile_competitor_exp_smooth(Competitor):
 		
 		while best_obj>0 and iteration<iterations:
 			
-			TT=iteration/iterations
+			it_num=(t*iterations)+iteration
+			TT=it_num/(iterations*1000)
+			#TT=iteration/iterations
 			temp=(1-TT)*t0Factor*abs(best_obj)
 			
 			for i in range(parameters):
@@ -212,14 +216,83 @@ class demand_profile_competitor_exp_smooth(Competitor):
 					best_solution[3]=n
 			iteration=iteration+1
 		#print("timesNonImprovingSolAccepted=",timesNonImprovingSolAccepted);
-		#print(best_solution)
+		print(best_solution)
 		
 		#
 		
 		return best_solution
 	
-		
 	def evaluateDemandModel1(self, params, prices_historical, demand_historical, t):
+		obj=0
+		#params[3]=0;
+		#
+		DM_TPs=self.PPU;
+		t_first=max(0, t-DM_TPs-1)
+		t_last=t-1
+		
+		#
+		pIntSize=1/self.WTPSS
+		
+		#
+		#predicted_demands=[0 for i in range(t_first, t_last+1)]
+		predicted_demands=[0 for i in range(t_last-t_first+1)]
+		
+		#sum_of_predicted_profit=0
+		#sum_of_actual_profit=0
+		#non_zero_demand_periods=0
+		
+		##generate wtp smaple based on params
+		wtpVals=[0 for i in range(self.WTPSS)]
+		for i in range(self.WTPSS):
+			wtpVals[i]=params[0]+self.ZScores[i]*params[1]
+		
+		NEst=0
+		
+		demand_vector=[0 for i in range(self.C)]
+		for k in range(t_first, t_last+1):#
+			#chance_of_sale=0
+			for j in range(self.WTPSS):
+				#construct the demand distribution
+				#print(prices_historical)
+				#print(wtpVals)
+				sum=0
+				#demand_vector=[0 for i in range(self.C)]
+				for i in range(self.C):#for each price
+					demand_vector[i]=0
+					#for each sampled customer wtp
+					#print(i," ",j)
+					if prices_historical[i][k]<wtpVals[j]:#then there is a change theat this customer will purchase from this competitor
+						contribution=((wtpVals[j]-prices_historical[i][k])/wtpVals[j])**params[2]
+						sum=sum+contribution
+						demand_vector[i]=demand_vector[i]+contribution
+			
+				#correct the distribution so that it sums to 1
+				if sum>0:
+					#chance_of_sale=chance_of_sale+pIntSize
+					for i in range(self.C):#for each price
+						demand_vector[i]=demand_vector[i]/sum
+				
+				
+				#print(len(predicted_demands),',',k)
+				predicted_demands[k-t_first]=predicted_demands[k-t_first]+(pIntSize*demand_vector[self.competitor_number])
+				
+			if predicted_demands[k-t_first]>0:
+				#account for the chance of no sales
+				#predicted_demands[k-t_first]=predicted_demands[k-t_first]*chance_of_sale
+				NEst=NEst+(demand_historical[k]/predicted_demands[k-t_first])
+		
+		#average N
+		NEst=NEst/(t_last-t_first)
+		params[3]=NEst
+		
+		#error on predicted profits 
+		for k in range(t_first, t_last+1): 
+			predicted_demands[k-t_first]=predicted_demands[k-t_first]*params[3]
+			obj=obj+((demand_historical[k]*-prices_historical[self.competitor_number][k])-(predicted_demands[k-t_first]*NEst*prices_historical[self.competitor_number][k]))**2
+				
+		return (obj, params[3])
+		
+	def evaluateDemandModel1ZZZZZ(self, params, prices_historical, demand_historical, t):
 		obj=0
 		#params[3]=0;
 		#
@@ -314,8 +387,8 @@ class demand_profile_competitor_exp_smooth(Competitor):
 		sign=1
 		if z<0:
 			sign=-1
-		a=0.147
-		result=sign*Math.sqrt((Math.sqrt(Math.pow((2/(Math.pi*a))+(Math.log(1-Math.pow(z, 2))/2), 2)-((Math.log(1-Math.pow(z, 2)))/(a)))-(((2)/(Math.pi*a))+(((Math.log(1-Math.pow(z, 2))))/(2)))))
+		aaa=0.147
+		result=sign*Math.sqrt((Math.sqrt(Math.pow((2/(Math.pi*aaa))+(Math.log(1-Math.pow(z, 2))/2), 2)-((Math.log(1-Math.pow(z, 2)))/(aaa)))-(((2)/(Math.pi*aaa))+(((Math.log(1-Math.pow(z, 2))))/(2)))))
 		return result
 	
 	#normal distribution (equations from wikipedia)
@@ -326,9 +399,19 @@ class demand_profile_competitor_exp_smooth(Competitor):
 		elif prob>=1:
 			x=mu+sigma*2.5
 		else:
-			x=mu+sigma*Math.sqrt(2)*self.inverseErrorFunctionApprox(2*prob-1)
+			x=mu+sigma*min(2.5, max(-2.5, Math.sqrt(2)*self.inverseErrorFunctionApprox(2*prob-1)))
 		return x
-		
+	
+	def CDFApprox(self, x):
+		return 0.5*(1+errorFunctionApprox(x/(2**0.5)))
+	
+	def errorFunctionApprox(self, z):
+		sign=1;
+		if z<0:
+			sign=-1
+		aaa=0.147
+		return sign*((1-Math.exp(-(z**2)*(((4/Math.pi)+(aaa*(z**2)))/(1+(aaa*(z**2))))))**0.5)
+	
 	#sorted prices could provide a more stable model, especially as competitor prices will not in general be modelled well with an exponential smoothing model for each individual customer 
 	def update_exp_smooth_params_return_forecast_prices(self, comp_prices_last_t, t):
 		for c in range(self.C):

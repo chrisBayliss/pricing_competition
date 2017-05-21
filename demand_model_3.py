@@ -20,12 +20,14 @@ class demand_model_3(object):
 		Competitor_subset=list(range(self.C))
 		
 		#
-		subset_size=self.a+round(np.random.uniform(0,1)*(self.b-self.a))
+		subset_size=int(self.a+round(np.random.uniform(0,1)*(self.b-self.a)))
+		
+		#print(subset_size)
 		
 		selected_comp_index=-1
 		if subset_size>0:
 			for i in range(self.C-subset_size):
-				Competitor_subset.pop(math.floor(np.random.uniform(0,1)*(self.C-i)))
+				Competitor_subset.pop(int(math.floor(np.random.uniform(0,1)*(self.C-i))))
 			
 			#find the lowest price competitor of these
 			min_price=10000000000

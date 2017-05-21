@@ -16,14 +16,14 @@ class demand_model_2(object):
 		Competitor_subset=list(range(self.C))
 		
 		#
-		subset_size=round(np.random.uniform(0,1)*self.C)
+		subset_size=int(round(np.random.uniform(0,1)*self.C))
 		
 		#print(subset_size)
 		
 		selected_comp_index=-1
 		if subset_size>0:
 			for i in range(self.C-subset_size):
-				pop_ind=math.floor(np.random.uniform(0,1)*(self.C-i))
+				pop_ind=int(math.floor(np.random.uniform(0,1)*(self.C-i)))
 				Competitor_subset.pop(pop_ind)#jim=
 				#print(Competitor_subset,', ',i,', ',pop_ind,', ',(self.C-1-i),', ',jim)
 			

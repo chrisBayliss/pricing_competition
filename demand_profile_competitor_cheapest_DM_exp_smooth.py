@@ -498,7 +498,7 @@ class demand_profile_competitor_cheapest_DM_exp_smooth(Competitor):
 			
 			#the calculations below COULD be speeded up by storing binomial coefficients
 			#calculate the predicted demand portion given parameters a,b
-			for r in range(max(1,params[0]), params[1]+1):
+			for r in range(int(max(1,params[0])), int(params[1]+1)):
 				#print('self.C',self.C,', our_rank=',our_rank,', r=',r)
 				equationNumberOfWins=(self.factorial((self.C-our_rank))/(self.factorial(r-1)*self.factorial((self.C-our_rank)-(r-1))));
 				
@@ -701,7 +701,7 @@ class demand_profile_competitor_cheapest_DM_exp_smooth(Competitor):
 		#find the demand portion associated with each rank
 		rank_demand=[0]*self.C
 		for i in range(self.C):
-			for r in range(max(1,self.A_3), self.B_3+1):
+			for r in range(int(max(1,self.A_3)), int(self.B_3+1)):
 				equationNumberOfWins=(self.factorial((self.C-(i+1)))/(self.factorial(r-1)*self.factorial((self.C-(i+1))-(r-1))));
 				
 				out_of=self.factorial(self.C)/(self.factorial(r)*self.factorial(self.C-r))

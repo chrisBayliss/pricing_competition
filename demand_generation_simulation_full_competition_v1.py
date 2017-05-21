@@ -13,6 +13,7 @@ from demand_profile_competitor_cheapest_DM_exp_smooth import *
 from demand_model_1 import *
 from demand_model_2 import *
 from demand_model_3 import *
+from demand_model_4 import *
 from Mode_price_forecast_competitor import *
 from Sine_competitor import *
 from Two_armed_bandit import *
@@ -28,7 +29,7 @@ repeats=2;
 C=2;#number of competitors
 
 T=1000#time periods
-N=50#customer population size
+N=500#customer population size
 arrival_rate=0.5#average arrival rate in each time period from the population of customers 
 
 
@@ -43,13 +44,15 @@ competitor_objs=[]
 use_random=True#False#
 use_fixed=True#False#
 use_epsilon_greedy_1=True#False#
-use_demand_profile_WTP=True#False#
+use_demand_profile_WTP=False#True#
 use_demand_profile_cheapest=True#False#
 use_mode_price=True#False#
 use_sine_wave=True#False#
 use_two_armed_bandit=False#True#
-use_three_armed_bandit=False#True#
+use_three_armed_bandit=True#False#
 use_epsilon_greedy_2=True#False#
+
+
 
 
 comp_index_count=0
@@ -140,15 +143,15 @@ C=len(competitor_objs);#number of competitors
 #DEMAND MODEL INITIALISATION
 #model parameters
 a=1;
-b=3;
+b=0.5;
 #normal willingness to pay distribution
-mu=50
-sigma=20
+mu=2
+sigma=25
 #demand model 1
-#dm_1=demand_model_1(C, a, b, mu, sigma)
+dm_1=demand_model_1(C, a, b, mu, sigma)
 #dm_1=demand_model_2(C)#cheapset in uniform random subset sizes (for every arriving customer)
-dm_1=demand_model_3(C, 2, C)#parameterised version of the above, a=min subset size, b=max subset size
-
+#dm_1=demand_model_3(C, 2, C-2)#parameterised version of the above, a=min subset size, b=max subset size
+#dm_1=demand_model_4(C, mu, sigma,0)
 
 #non-dynamic randomly generated customer prices
 prices_historical=np.zeros((C,T))

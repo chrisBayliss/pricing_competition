@@ -10,18 +10,13 @@ class Three_armed_bandit(Competitor):
 	alpha=0.2
 	beta=0.2
 	
+	
 	#estimated model parameters (these need to be updated to values consistent with previous observations)
-	initB=2
-	
-	#assumed normal distribution
-	initSIGMA=10
-	initMU=50
-	
-	initN=1;
-	
+	initB=1
+	initSIGMA=5
+	initMU=70
 	
 	B=2
-	#assumed normal distribution
 	SIGMA=10
 	MU=50
 	
@@ -31,6 +26,7 @@ class Three_armed_bandit(Competitor):
 	B_3=1
 	initB_3=1
 	
+	WTPSS=25
 	
 	N=1;#common to all demand models
 	
@@ -43,28 +39,27 @@ class Three_armed_bandit(Competitor):
 	#mu=[0,100], signma=[0, 20], B=[0,5], N=[free parameter, multiplicative step length] (for a given model the N that fits best can be directly calculated)
 	parameters_2=3
 	iterations_2=2
-	initial_step_lengths_2=[]
+	initial_step_lengths_2=[]#t==0   f(number of iterations, number of time periods)
 	#parameter_selection_distribution_2=[0.33, 0.66, 1]
 	parameter_selection_distribution_2=[0.33,0.66, 1]
 	parameter_selection_distribution_2_step_len=[0.33,0.33, 0.33]
-	param_bounds_2=[[0.000000000001,100],[0.000000000001, 50],[0.000000000001,5]]
-	t0Factor_2=0.0000000001
-	max_param_ranges_2=[100, 50, 5]
-	times_across_space_2=0.0005;#using a linearly decreasing time step
+	param_bounds_2=[[1,100],[1, 30],[0.1,5]]
+	t0Factor_2=0.001
+	max_param_ranges_2=[99, 29, 4.9]
+	times_across_space_2=5;#using a linearly decreasing time step
 	
 	parameters_3=2
-	iterations_3=10
+	iterations_3=2
 	initial_step_lengths_3=[]
 	#parameter_selection_distribution_2=[0.33, 0.66, 1]
 	parameter_selection_distribution_3=[0.5,1]
 	parameter_selection_distribution_3_step_len=[0.5,0.5]
 	param_bounds_3=[[0,100],[0,100]]
-	t0Factor_3=0.0000000001
+	t0Factor_3=0.001
 	max_param_ranges_3=[100, 100]
-	times_across_space_3=0.00000002;#using a linearly decreasing time step
+	times_across_space_3=5;#using a linearly decreasing time step
 	
 	#
-	wtp_sample_size=10
 	
 	expected_demand=0
 	
@@ -101,8 +96,8 @@ class Three_armed_bandit(Competitor):
 		
 		#wtp demand model
 		unitarySumOfDecreasingStepLengths=0
-		for i in range(self.iterations_2):
-			unitarySumOfDecreasingStepLengths=unitarySumOfDecreasingStepLengths+(1-(i/self.iterations_2))
+		for i in range(self.iterations_2*1000):
+			unitarySumOfDecreasingStepLengths=unitarySumOfDecreasingStepLengths+(1-(i/(self.iterations_2*1000)))
 		
 		self.initial_step_lengths_2=np.zeros((self.parameters_2))
 		for i in range(self.parameters_2):
@@ -111,8 +106,8 @@ class Three_armed_bandit(Competitor):
 		
 		#cheapest of subset demand model	
 		unitarySumOfDecreasingStepLengths=0
-		for i in range(self.iterations_3):
-			unitarySumOfDecreasingStepLengths=unitarySumOfDecreasingStepLengths+(1-(i/self.iterations_3))
+		for i in range(self.iterations_3*1000):
+			unitarySumOfDecreasingStepLengths=unitarySumOfDecreasingStepLengths+(1-(i/(self.iterations_3*1000)))
 		
 		self.initial_step_lengths_3=np.zeros((self.parameters_3))
 		for i in range(self.parameters_3):
@@ -138,7 +133,6 @@ class Three_armed_bandit(Competitor):
 			self.MU=self.initMU
 			self.SIGMA=self.initSIGMA
 			self.B=self.initB
-			self.N=self.initN
 			
 			#cheapest of subset demand model
 			#set a<=b<=C parameter bounds
@@ -178,7 +172,7 @@ class Three_armed_bandit(Competitor):
 			
 			
 			#update MAB_2
-			self.values_2[self.index_last_period_2]=self.update_2(self.index_last_period_2,demand_historical[t-1]*prices_historical[self.competitor_number,t-1])
+			self.values_2[int(self.index_last_period_2)]=self.update_2(int(self.index_last_period_2),demand_historical[t-1]*prices_historical[self.competitor_number,t-1])
 			#
 			index_2=max(0, min(len(self.prices_2)-1, math.floor(popt/10)))
 			#self.counts_2[index_2]=self.counts_2[index_2]+1 #the number of times this price is chosen increases by 1
@@ -193,6 +187,10 @@ class Three_armed_bandit(Competitor):
 			elif t==2:
 				index=random.randrange(len(self.values_1)) #choose a random price
 			#print(self.values_1,', ',index)
+			
+			#if t==50:
+				#self.counts_1 = [0 for col in range(3)] # a vector with 10 entries showing how many times each price is chosen
+				#self.values_1 = [0.0 for col in range(3)] # a vector with 10 entries showing the average reward(demand) obtained by each price
 			
 			#counts
 			#self.counts_1[index]=self.counts_1[index]+1 #the number of times this price is chosen increases by 1
@@ -235,7 +233,7 @@ class Three_armed_bandit(Competitor):
 			#demand model epsilon greedy is one to try
 			#MAB_2 update reward vector
 			#print('index=',self.index_last_period_2)
-			self.values_2[self.index_last_period_2]=self.update_2(self.index_last_period_2,demand_historical[t-1]*prices_historical[self.competitor_number,t-1])
+			self.values_2[int(self.index_last_period_2)]=self.update_2(int(self.index_last_period_2),demand_historical[t-1]*prices_historical[self.competitor_number,t-1])
 			
 			
 
@@ -247,11 +245,12 @@ class Three_armed_bandit(Competitor):
 					counter=counter+1
 			
 			[sorted_prices, ind_order]=self.sort(self.other_prices)#prices_historical[:,t-1]
-			
+			#self.demand_model_to_use=2
 			
 			forecast_price_set=self.update_exp_smooth_params_return_forecast_prices(sorted_prices, t)
 			#sample wtp and derive competitor probability distribution
 			#find optimum d*p
+			#self.demand_model_to_use=1
 			#print(ind_order)
 			if self.demand_model_to_use==1:
 				popt = self.next_price(forecast_price_set)
@@ -298,13 +297,20 @@ class Three_armed_bandit(Competitor):
 		
 		#print(best_solution)
 		
+		
 		while best_obj>0 and iteration<iterations:
 			
-			TT=iteration/iterations
+			it_num=(t*iterations)+iteration
+			TT=it_num/(iterations*1000)
+			#TT=iteration/iterations
 			temp=(1-TT)*t0Factor*abs(best_obj)
+			
+			#print(initial_step_lengths[0]*(1-TT))
 			
 			for i in range(parameters):
 				neighbour_solution[i]=current_solution[i]
+			
+			
 			
 			
 			#generate neighbouring solution
@@ -361,6 +367,77 @@ class Three_armed_bandit(Competitor):
 		
 		return best_solution
 	
+	def evaluateDemandModel1ZZZZZ(self, params, prices_historical, demand_historical, t):
+		obj=0
+		#params[3]=0;
+		#
+		DM_TPs=self.PPU;
+		t_first=max(0, t-DM_TPs-1)
+		t_last=t-1
+		
+		#
+		pIntSize=1/self.WTPSS
+		
+		#
+		#predicted_demands=[0 for i in range(t_first, t_last+1)]
+		predicted_demands=[0 for i in range(t_last-t_first+1)]
+		
+		#sum_of_predicted_profit=0
+		#sum_of_actual_profit=0
+		#non_zero_demand_periods=0
+		
+		##generate wtp smaple based on params
+		wtpVals=[0 for i in range(self.WTPSS)]
+		for i in range(self.WTPSS):
+			wtpVals[i]=params[0]+self.ZScores[i]*params[1]
+		
+		NEst=0
+		
+		demand_vector=[0 for i in range(self.C)]
+		for k in range(t_first, t_last+1):#
+			chance_of_sale=0
+			for j in range(self.WTPSS):
+				#construct the demand distribution
+				#print(prices_historical)
+				#print(wtpVals)
+				sum=0
+				#demand_vector=[0 for i in range(self.C)]
+				for i in range(self.C):#for each price
+					demand_vector[i]=0
+					#for each sampled customer wtp
+					#print(i," ",j)
+					if prices_historical[i][k]<wtpVals[j]:#then there is a change theat this customer will purchase from this competitor
+						contribution=((wtpVals[j]-prices_historical[i][k])/wtpVals[j])**params[2]
+						sum=sum+contribution
+						demand_vector[i]=demand_vector[i]+contribution
+			
+				#correct the distribution so that it sums to 1
+				if sum>0:
+					chance_of_sale=chance_of_sale+pIntSize
+					for i in range(self.C):#for each price
+						demand_vector[i]=demand_vector[i]/sum
+				
+				
+				#print(len(predicted_demands),',',k)
+				predicted_demands[k-t_first]=predicted_demands[k-t_first]+(pIntSize*demand_vector[self.competitor_number])
+				
+			if predicted_demands[k-t_first]>0:
+				#account for the chance of no sales
+				predicted_demands[k-t_first]=predicted_demands[k-t_first]*chance_of_sale
+				NEst=NEst+(demand_historical[k]/predicted_demands[k-t_first])
+		
+		#average N
+		NEst=NEst/(t_last-t_first)
+		params[3]=NEst
+		
+		#error on predicted profits 
+		for k in range(t_first, t_last+1): 
+			predicted_demands[k-t_first]=predicted_demands[k-t_first]*params[3]
+			obj=obj+((demand_historical[k]*-prices_historical[self.competitor_number][k])-(predicted_demands[k-t_first]*NEst*prices_historical[self.competitor_number][k]))**2
+				
+		return (obj, params[3])
+
+
 		
 	def evaluateDemandModel1(self, params, prices_historical, demand_historical, t):
 		obj=0
@@ -380,9 +457,9 @@ class Three_armed_bandit(Competitor):
 		#non_zero_demand_periods=0
 		
 		##generate wtp smaple based on params
-		wtp_sample_values=[0 for i in range(self.wtp_sample_size)]
-		for i in range(self.wtp_sample_size):
-			wtp_sample_values[i]=self.quantileFunction(i/(self.wtp_sample_size-1), params[0], params[1])
+		wtp_sample_values=[0 for i in range(self.WTPSS)]
+		for i in range(self.WTPSS):
+			wtp_sample_values[i]=self.quantileFunction(i/(self.WTPSS-1), params[0], params[1])
 		demand_vector=[0 for i in range(self.C)]
 		for k in range(t_first, t_last+1):#
 			sum_of_actual_demand=sum_of_actual_demand+demand_historical[k]
@@ -395,7 +472,7 @@ class Three_armed_bandit(Competitor):
 			#demand_vector=[0 for i in range(self.C)]
 			for i in range(self.C):#for each price
 				demand_vector[i]=0
-				for j in range(self.wtp_sample_size):#for each sampled customer wtp
+				for j in range(self.WTPSS):#for each sampled customer wtp
 					#print(i," ",j)
 					if prices_historical[i][k]<wtp_sample_values[j]:#then there is a change theat this customer will purchase from this competitor
 						contribution=((wtp_sample_values[j]-prices_historical[i][k])/wtp_sample_values[j])**params[2]
@@ -458,7 +535,9 @@ class Three_armed_bandit(Competitor):
 		
 		while best_obj>0 and iteration<iterations:
 			
-			TT=iteration/iterations
+			it_num=(t*iterations)+iteration
+			TT=it_num/(iterations*1000)
+			#TT=iteration/iterations
 			temp=(1-TT)*t0Factor*abs(best_obj)
 			
 			for i in range(parameters):
@@ -478,17 +557,25 @@ class Three_armed_bandit(Competitor):
 			
 			#print('param_to_modify=',param_to_modify,', pos_neg=',pos_neg,', neighbour_solution[0]=',neighbour_solution[0])
 			
+			#if param_to_modify==0:#A_3
+				
+				#neighbour_solution[0]=int(min(self.C, max(0, neighbour_solution[0]+pos_neg*(max(1, (1-TT)*initial_step_lengths[0])))))
+				#neighbour_solution[1]=int(max(neighbour_solution[0], neighbour_solution[1]))
+				#print(neighbour_solution)
+			#else:
+				#The following ensures B_3>=1
+				#neighbour_solution[1]=int(min(self.C, max(1, neighbour_solution[1]+pos_neg*(max(1, (1-TT)*initial_step_lengths[1])))))
+				#neighbour_solution[0]=int(min(neighbour_solution[0], neighbour_solution[1]))
+			
 			if param_to_modify==0:#A_3
 				
-				neighbour_solution[0]=min(self.C, max(0, neighbour_solution[0]+pos_neg*(max(1, initial_step_lengths[0]))))
-				neighbour_solution[1]=max(neighbour_solution[0], neighbour_solution[1])
+				neighbour_solution[0]=int(min(self.C, max(0, neighbour_solution[0]+pos_neg*1)))
+				neighbour_solution[1]=int(max(neighbour_solution[0], neighbour_solution[1]))
 				#print(neighbour_solution)
 			else:
 				#The following ensures B_3>=1
-				neighbour_solution[1]=min(self.C, max(1, neighbour_solution[1]+pos_neg*(max(1, initial_step_lengths[1]))))
-				neighbour_solution[0]=min(neighbour_solution[0], neighbour_solution[1])
-			
-			
+				neighbour_solution[1]=int(min(self.C, max(1, neighbour_solution[1]+pos_neg*1)))
+				neighbour_solution[0]=int(min(neighbour_solution[0], neighbour_solution[1]))
 			#
 			
 			#evaluateDemandModel1
@@ -525,7 +612,7 @@ class Three_armed_bandit(Competitor):
 					best_solution[2]=n
 			iteration=iteration+1
 		#print("timesNonImprovingSolAccepted=",timesNonImprovingSolAccepted);
-		#print(best_solution)
+		print(best_solution)
 		
 		#
 		
@@ -562,29 +649,26 @@ class Three_armed_bandit(Competitor):
 			
 			#the calculations below COULD be speeded up by storing binomial coefficients
 			#calculate the predicted demand portion given parameters a,b
-			for r in range(max(1,params[0]), params[1]+1):
+			#cases_total=0
+			#total_wins=0
+			for r in range(int(max(1,params[0])), int(params[1]+1)):
 				#print('self.C',self.C,', our_rank=',our_rank,', r=',r)
-				equationNumberOfWins=(self.factorial((self.C-our_rank))/(self.factorial(r-1)*self.factorial((self.C-our_rank)-(r-1))));
 				
-				out_of=self.factorial(self.C)/(self.factorial(r)*self.factorial(self.C-r))
-				
-				#if out_of==1:
-					#print(params,', ',our_rank,', ',equationNumberOfWins,', ',out_of)
-				#out_of>0 and 
-				
-				
-				predicted_demands[k-t_first]=predicted_demands[k-t_first]+(1/(params[1]-params[0]+1))*(equationNumberOfWins/out_of)
-				#if (params[1]-params[0])>0:
-					#predicted_demands[k-t_first]=predicted_demands[k-t_first]+(1/(params[1]-params[0]))*(equationNumberOfWins/out_of)
-				#elif (params[1]-params[0])==0:
-					#predicted_demands[k-t_first]=predicted_demands[k-t_first]+(equationNumberOfWins/out_of)
-				
+				#cases_total=cases_total+out_of
+				if (self.C-our_rank)-(r-1)>=0:
+					out_of=self.factorial(self.C)/(self.factorial(r)*self.factorial(self.C-r))
+					equationNumberOfWins=(self.factorial((self.C-our_rank))/(self.factorial(r-1)*self.factorial((self.C-our_rank)-(r-1))));
+					predicted_demands[k-t_first]=predicted_demands[k-t_first]+(1/(params[1]-params[0]+1))*(equationNumberOfWins/out_of)
+					
 			#sum of predicted demand portions
 			sum_of_predicted_demand=sum_of_predicted_demand+predicted_demands[k-t_first]
 			
-			
-				
+		
 		predicted_portion_of_demand=sum_of_predicted_demand/(t_last-t_first)
+		
+		#if params[0]==0:
+			#predicted_portion_of_demand
+		
 		#non_zero_demand_periods#
 		if predicted_portion_of_demand>0:
 			params[2]=(sum_of_actual_demand/(t_last-t_first))/predicted_portion_of_demand
@@ -631,8 +715,8 @@ class Three_armed_bandit(Competitor):
 		sign=1
 		if z<0:
 			sign=-1
-		a=0.147
-		result=sign*Math.sqrt((Math.sqrt(Math.pow((2/(Math.pi*a))+(Math.log(1-Math.pow(z, 2))/2), 2)-((Math.log(1-Math.pow(z, 2)))/(a)))-(((2)/(Math.pi*a))+(((Math.log(1-Math.pow(z, 2))))/(2)))))
+		aaa=0.147
+		result=sign*Math.sqrt((Math.sqrt(Math.pow((2/(Math.pi*aaa))+(Math.log(1-Math.pow(z, 2))/2), 2)-((Math.log(1-Math.pow(z, 2)))/(aaa)))-(((2)/(Math.pi*aaa))+(((Math.log(1-Math.pow(z, 2))))/(2)))))
 		return result
 	
 	#normal distribution (equations from wikipedia)
@@ -643,7 +727,7 @@ class Three_armed_bandit(Competitor):
 		elif prob>=1:
 			x=mu+sigma*2.5
 		else:
-			x=mu+sigma*Math.sqrt(2)*self.inverseErrorFunctionApprox(2*prob-1)
+			x=mu+sigma*min(2.5, max(-2.5, Math.sqrt(2)*self.inverseErrorFunctionApprox(2*prob-1)))
 		return x
 		
 	#sorted prices could provide a more stable model, especially as competitor prices will not in general be modelled well with an exponential smoothing model for each individual customer 
@@ -660,14 +744,14 @@ class Three_armed_bandit(Competitor):
 		#print(predicted_comp_prices)
 		#equal probability interval sample
 		wtp_sample_values=[]	
-		for i in range(self.wtp_sample_size):
-			wtp_sample_values.append(self.quantileFunction(i/(self.wtp_sample_size-1), self.MU, self.SIGMA))
+		for i in range(self.WTPSS):
+			wtp_sample_values.append(self.quantileFunction(i/(self.WTPSS-1), self.MU, self.SIGMA))
 			
 		#generate a demand vector for each price from the wtp sample
 		sum=0
 		demand_vector=[0 for i in range(self.C)]
 		for i in range(self.C):#for each price
-			for j in range(self.wtp_sample_size):#for each sampled customer wtp
+			for j in range(self.WTPSS):#for each sampled customer wtp
 				if predicted_comp_prices[i]<wtp_sample_values[j]:#then there is a change theat this customer will purchase from this competitor
 					contribution=((wtp_sample_values[j]-predicted_comp_prices[i])/wtp_sample_values[j])**self.B
 					if wtp_sample_values[j]<=0:
@@ -697,8 +781,8 @@ class Three_armed_bandit(Competitor):
 		#print(predicted_comp_prices)
 		#equal probability interval sample
 		wtp_sample_values=[]	
-		for i in range(self.wtp_sample_size):
-			wtp_sample_values.append(self.quantileFunction(i/(self.wtp_sample_size-1), self.MU, self.SIGMA))
+		for i in range(self.WTPSS):
+			wtp_sample_values.append(self.quantileFunction(i/(self.WTPSS-1), self.MU, self.SIGMA))
 		
 		next_price=self.np.random.uniform(0,100)
 		
@@ -726,7 +810,7 @@ class Three_armed_bandit(Competitor):
 			sum=0
 			demand_vector=[0 for i in range(self.C)]
 			for i in range(self.C-1):#for each price
-				for j in range(self.wtp_sample_size):#for each sampled customer wtp
+				for j in range(self.WTPSS):#for each sampled customer wtp
 					if predicted_comp_prices[i]<wtp_sample_values[j]:#then there is a change theat this customer will purchase from this competitor
 						contribution=((wtp_sample_values[j]-predicted_comp_prices[i])/wtp_sample_values[j])**self.B
 						if wtp_sample_values[j]<=0:
@@ -735,7 +819,7 @@ class Three_armed_bandit(Competitor):
 						demand_vector[i]=demand_vector[i]+contribution
 			
 			#demand vector contribution from our price (we are index self.C-1)
-			for j in range(self.wtp_sample_size):#for each sampled customer wtp
+			for j in range(self.WTPSS):#for each sampled customer wtp
 				if potential_prices[k]<wtp_sample_values[j]:#then there is a change theat this customer will purchase from this competitor
 					contribution=((wtp_sample_values[j]-potential_prices[k])/wtp_sample_values[j])**self.B
 					if wtp_sample_values[j]<=0:
@@ -765,7 +849,7 @@ class Three_armed_bandit(Competitor):
 		#find the demand portion associated with each rank
 		rank_demand=[0]*self.C
 		for i in range(self.C):
-			for r in range(max(1,self.A_3), self.B_3+1):
+			for r in range(int(max(1,self.A_3)), int(self.B_3+1)):
 				equationNumberOfWins=(self.factorial((self.C-(i+1)))/(self.factorial(r-1)*self.factorial((self.C-(i+1))-(r-1))));
 				
 				out_of=self.factorial(self.C)/(self.factorial(r)*self.factorial(self.C-r))
@@ -822,17 +906,17 @@ class Three_armed_bandit(Competitor):
 			
 	def update(self, chosen_arm, reward):
 		#print(chosen_arm)
-		self.counts_1[chosen_arm] = self.counts_1[chosen_arm] + 1
-		n = self.counts_1[chosen_arm]
-		value = self.values_1[chosen_arm]
+		self.counts_1[int(chosen_arm)] = self.counts_1[int(chosen_arm)] + 1
+		n = self.counts_1[int(chosen_arm)]
+		value = self.values_1[int(chosen_arm)]
 		new_value = ((n - 1) / float(n)) * value + (1 / float(n)) * reward #weighted average
 		return new_value
 	
 	def update_2(self, chosen_arm, reward):
 		#print(chosen_arm)
-		self.counts_2[chosen_arm] = self.counts_2[chosen_arm] + 1
-		n = self.counts_2[chosen_arm]
-		value = self.values_2[chosen_arm]
+		self.counts_2[int(chosen_arm)] = self.counts_2[int(chosen_arm)] + 1
+		n = self.counts_2[int(chosen_arm)]
+		value = self.values_2[int(chosen_arm)]
 		new_value = ((n - 1) / float(n)) * value + (1 / float(n)) * reward #weighted average
 		return new_value
 
