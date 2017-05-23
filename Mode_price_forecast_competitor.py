@@ -70,7 +70,7 @@ class Mode_price_forecast_competitor(Competitor):
 				
 			for i in range(len(forecast_price_set)):
 				interval=min(len(self.mode_interval_frequencies)-1, max(0, Math.floor(forecast_price_set[i]/self.mode_interval_size)))
-				self.mode_interval_frequencies[interval]=self.mode_interval_frequencies[interval]+1
+				self.mode_interval_frequencies[int(interval)]=self.mode_interval_frequencies[int(interval)]+1
 			
 			#find the mode price
 			max_frequency=0
@@ -94,22 +94,22 @@ class Mode_price_forecast_competitor(Competitor):
 			self.prices_next_t[c]=max(0, min(100,self.Base_value[t-2][c]+self.Trend[t-1][c]))
 		return self.prices_next_t
 		
-	def sort(self, F):
-		size=len(F)
-		E=list(F)
-		B=[0]*len(F)
+	def sort(self, FF):
+		size=len(FF)
+		EE=list(FF)
+		BB=[0]*len(FF)
 		ind_ord=[0 for i in range(size)]
 		for i in range(size):
-			B[i]=i
-		D=[0 for i in range(size)]
+			BB[i]=i
+		DD=[0 for i in range(size)]
 		for i in range(size):
-			smallest=E[0]
+			smallest=EE[0]
 			position=0
 			for j in range(1,size-i):
-				if E[j]<smallest:
-					smallest=E[j]
+				if EE[j]<smallest:
+					smallest=EE[j]
 					position=j
-			D[i]=smallest
-			E.pop(position)
-			ind_ord[i]=B.pop(position)
-		return [D,ind_ord]
+			DD[i]=smallest
+			EE.pop(position)
+			ind_ord[i]=BB.pop(position)
+		return [DD,ind_ord]

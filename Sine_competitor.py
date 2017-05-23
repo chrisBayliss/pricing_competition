@@ -7,7 +7,7 @@ class Sine_competitor(Competitor):
 	#store parameterdump here (until competition)
 	#A+B*sin(C*t)
 	A=50.0
-	B=50.0
+	B=50.0#0#
 	D=0.02
 	
 
@@ -28,5 +28,3 @@ class Sine_competitor(Competitor):
 			
 		
 		return popt
-		
-	

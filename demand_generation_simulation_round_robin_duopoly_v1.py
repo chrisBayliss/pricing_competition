@@ -13,22 +13,25 @@ from demand_profile_competitor_cheapest_DM_exp_smooth import *
 from demand_model_1 import *
 from demand_model_2 import *
 from demand_model_3 import *
+from demand_model_4 import *
+from demand_model_5 import *
 from Mode_price_forecast_competitor import *
 from Sine_competitor import *
 from Two_armed_bandit import *
 from Three_armed_bandit import *
+from Four_armed_bandit_2 import *
 
 
 #x=np.array([[7,8,5],[3,5,7]],np.int32)
 #plt.plot(x[:,0],x[:,1])
 #plt.show()
 
-repeats=10;
+repeats=1;
 
 C=0;#number of competitors, initialised below
 
 T=1000#time periods
-N=50#customer population size
+N=500#customer population size
 arrival_rate=0.5#average arrival rate in each time period from the population of customers 
 
 
@@ -42,12 +45,13 @@ competitor_objs=[]
 use_random=True#False#
 use_fixed=True#False#
 use_epsilon_greedy_1=True#False#
-use_demand_profile_WTP=True#False#
+use_demand_profile_WTP=False#True#
 use_demand_profile_cheapest=True#False#
 use_mode_price=True#False#
 use_sine_wave=True#False#
 use_two_armed_bandit=False#True#
 use_three_armed_bandit=False#True#
+use_four_armed_bandit=True#False#
 use_epsilon_greedy_2=True#False#
 
 
@@ -127,6 +131,12 @@ if use_three_armed_bandit:
 	competitor_names.append('three_armed_bandit')
 	comp_index_count=comp_index_count+1
 
+if use_four_armed_bandit:
+	demand_model_bandit_comp_3=Four_armed_bandit_2(comp_index_count,0.2,0.2,np)
+	competitor_objs.append(demand_model_bandit_comp_3)
+	competitor_names.append('four_armed_bandit')
+	comp_index_count=comp_index_count+1
+	
 #use epsilon greedy 2/library/random
 if use_epsilon_greedy_2:
 	epsilon_greedy_comp_2=Epsilon_greedy_competitor2(comp_index_count,epsilon)
@@ -146,9 +156,10 @@ b=3;
 mu=50
 sigma=20
 #demand model 1
-#dm_1=demand_model_1(C, a, b, mu, sigma)
-#dm_1=demand_model_2(C)#cheapset in uniform random subset sizes (for every arriving customer)
-dm_1=demand_model_3(C, 2, C)#parameterised version of the above, a=min subset size, b=max subset size
+#dm_1=demand_model_1(2, a, b, mu, sigma)
+dm_1=demand_model_2(2)#cheapset in uniform random subset sizes (for every arriving customer)
+#dm_1=demand_model_3(C, 2, C)#parameterised version of the above, a=min subset size, b=max #dm_1=demand_model_4(C, mu, sigma,0)
+#dm_1=demand_model_5(C, a, b, mu, sigma)
 
 
 #non-dynamic randomly generated customer prices
@@ -180,6 +191,7 @@ for rep in range(repeats):
 			#the two competitors
 			competitor_set=[c1,c2]
 			#time steps
+			print(competitor_names[c1],' vs ',competitor_names[c2])
 			for t in range(T):
 				#get competitor prices for the current time period (current/next: check whic for actual competition. In this version competit)
 				prices_this_t=[]#prices this time period (to avoid contaminating the timeline)
@@ -208,8 +220,9 @@ for rep in range(repeats):
 total_comp_profit=[0 for i in range(C)]
 total_comp_profit_matrix=[[0 for j in range(C)] for i in range(C)]
 for i in range(C):
-    for t in range(T):
-        total_comp_profit[i]=total_comp_profit[i]+comp_profit[i][t]
+	for t in range(T):
+		h=1
+		total_comp_profit[i]=total_comp_profit[i]+comp_profit[i][t]
 		for j in range(C):
 			total_comp_profit_matrix[i][j]=total_comp_profit_matrix[i][j]+comp_profit_matrix[i][j][t]
 print('duopoly results')		
@@ -218,33 +231,33 @@ print(total_comp_profit)
 print('total_comp_profit_matrix=')
 print(total_comp_profit_matrix)
 
-print('these graphs focus on the overall profit not a pairwise comparison (generate plots from "comp_profit_matrix" for this)')
-x=np.linspace(0,1000,1000)
-y=comp_profit#
-z=prices_historical        
-rand_prof, = plt.plot(x,y[0,:])
-fixed_prof, = plt.plot(x,y[1,:])
-epsilon_prof, = plt.plot(x,y[2,:])
-demand_prof_prof, = plt.plot(x,y[3,:])
-demand_prof_prof_exp_smooth, = plt.plot(x,y[4,:])
+# print('these graphs focus on the overall profit not a pairwise comparison (generate plots from "comp_profit_matrix" for this)')
+# x=np.linspace(0,1000,1000)
+# y=comp_profit#
+# z=prices_historical        
+# rand_prof, = plt.plot(x,y[0,:])
+# fixed_prof, = plt.plot(x,y[1,:])
+# epsilon_prof, = plt.plot(x,y[2,:])
+# demand_prof_prof, = plt.plot(x,y[3,:])
+# demand_prof_prof_exp_smooth, = plt.plot(x,y[4,:])
 
-plt.legend([rand_prof,fixed_prof,epsilon_prof,demand_prof_prof,demand_prof_prof_exp_smooth], ['rand_prof','fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
+# plt.legend([rand_prof,fixed_prof,epsilon_prof,demand_prof_prof,demand_prof_prof_exp_smooth], ['rand_prof','fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
 
-plt.figure(1)
+# plt.figure(1)
 
-plt.show()
+# plt.show()
 
-#rand_prof_z, = plt.plot(x,z[0,:])
-fixed_prof_z, = plt.plot(x,z[1,:])
-epsilon_prof_z, = plt.plot(x,z[2,:])
-demand_prof_prof_z, = plt.plot(x,z[3,:])
-demand_prof_prof_exp_smooth_z, = plt.plot(x,z[4,:])
+# #rand_prof_z, = plt.plot(x,z[0,:])
+# fixed_prof_z, = plt.plot(x,z[1,:])
+# epsilon_prof_z, = plt.plot(x,z[2,:])
+# demand_prof_prof_z, = plt.plot(x,z[3,:])
+# demand_prof_prof_exp_smooth_z, = plt.plot(x,z[4,:])
 
-plt.legend([fixed_prof_z,epsilon_prof_z,demand_prof_prof_z,demand_prof_prof_exp_smooth_z], ['fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
+# plt.legend([fixed_prof_z,epsilon_prof_z,demand_prof_prof_z,demand_prof_prof_exp_smooth_z], ['fixed_prof','epsilon_prof','demand_prof_prof','demand_prof_prof_exp_smooth'])
 
-plt.figure(2)
+# plt.figure(2)
 
-plt.show()
+# plt.show()
 
 
 

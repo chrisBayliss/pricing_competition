@@ -531,7 +531,7 @@ class Two_armed_bandit(Competitor):
 			
 			#the calculations below COULD be speeded up by storing binomial coefficients
 			#calculate the predicted demand portion given parameters a,b
-			for r in range(max(1,params[0]), params[1]+1):
+			for r in range(int(max(1,params[0])), int(params[1]+1)):
 				#print('self.C',self.C,', our_rank=',our_rank,', r=',r)
 				equationNumberOfWins=(self.factorial((self.C-our_rank))/(self.factorial(r-1)*self.factorial((self.C-our_rank)-(r-1))));
 				
@@ -600,8 +600,8 @@ class Two_armed_bandit(Competitor):
 		sign=1
 		if z<0:
 			sign=-1
-		a=0.147
-		result=sign*Math.sqrt((Math.sqrt(Math.pow((2/(Math.pi*a))+(Math.log(1-Math.pow(z, 2))/2), 2)-((Math.log(1-Math.pow(z, 2)))/(a)))-(((2)/(Math.pi*a))+(((Math.log(1-Math.pow(z, 2))))/(2)))))
+		aaa=0.147
+		result=sign*Math.sqrt((Math.sqrt(Math.pow((2/(Math.pi*aaa))+(Math.log(1-Math.pow(z, 2))/2), 2)-((Math.log(1-Math.pow(z, 2)))/(aaa)))-(((2)/(Math.pi*aaa))+(((Math.log(1-Math.pow(z, 2))))/(2)))))
 		return result
 	
 	#normal distribution (equations from wikipedia)
@@ -612,7 +612,7 @@ class Two_armed_bandit(Competitor):
 		elif prob>=1:
 			x=mu+sigma*2.5
 		else:
-			x=mu+sigma*Math.sqrt(2)*self.inverseErrorFunctionApprox(2*prob-1)
+			x=mu+sigma*min(2.5, max(-2.5, Math.sqrt(2)*self.inverseErrorFunctionApprox(2*prob-1)))
 		return x
 		
 	#sorted prices could provide a more stable model, especially as competitor prices will not in general be modelled well with an exponential smoothing model for each individual customer 
@@ -734,7 +734,7 @@ class Two_armed_bandit(Competitor):
 		#find the demand portion associated with each rank
 		rank_demand=[0]*self.C
 		for i in range(self.C):
-			for r in range(max(1,self.A_3), self.B_3+1):
+			for r in range(int(max(1,self.A_3)), int(self.B_3+1)):
 				equationNumberOfWins=(self.factorial((self.C-(i+1)))/(self.factorial(r-1)*self.factorial((self.C-(i+1))-(r-1))));
 				
 				out_of=self.factorial(self.C)/(self.factorial(r)*self.factorial(self.C-r))

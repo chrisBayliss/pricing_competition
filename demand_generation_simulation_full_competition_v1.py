@@ -14,10 +14,12 @@ from demand_model_1 import *
 from demand_model_2 import *
 from demand_model_3 import *
 from demand_model_4 import *
+from demand_model_5 import *
 from Mode_price_forecast_competitor import *
 from Sine_competitor import *
 from Two_armed_bandit import *
 from Three_armed_bandit import *
+from Four_armed_bandit_2 import *
 
 
 #x=np.array([[7,8,5],[3,5,7]],np.int32)
@@ -49,7 +51,8 @@ use_demand_profile_cheapest=True#False#
 use_mode_price=True#False#
 use_sine_wave=True#False#
 use_two_armed_bandit=False#True#
-use_three_armed_bandit=True#False#
+use_three_armed_bandit=False#True#
+use_four_armed_bandit=True#False#
 use_epsilon_greedy_2=True#False#
 
 
@@ -130,6 +133,12 @@ if use_three_armed_bandit:
 	competitor_objs.append(demand_model_bandit_comp_2)
 	competitor_names.append('three_armed_bandit')
 	comp_index_count=comp_index_count+1
+	
+if use_four_armed_bandit:
+	demand_model_bandit_comp_3=Four_armed_bandit_2(comp_index_count,0.5,0.2,np)
+	competitor_objs.append(demand_model_bandit_comp_3)
+	competitor_names.append('four_armed_bandit')
+	comp_index_count=comp_index_count+1
 
 #use epsilon greedy 2/library/random
 if use_epsilon_greedy_2:
@@ -143,15 +152,16 @@ C=len(competitor_objs);#number of competitors
 #DEMAND MODEL INITIALISATION
 #model parameters
 a=1;
-b=0.5;
+b=3;
 #normal willingness to pay distribution
-mu=2
-sigma=25
+mu=20
+sigma=5
 #demand model 1
 dm_1=demand_model_1(C, a, b, mu, sigma)
 #dm_1=demand_model_2(C)#cheapset in uniform random subset sizes (for every arriving customer)
 #dm_1=demand_model_3(C, 2, C-2)#parameterised version of the above, a=min subset size, b=max subset size
 #dm_1=demand_model_4(C, mu, sigma,0)
+#dm_1=demand_model_5(C, a, b, mu, sigma)
 
 #non-dynamic randomly generated customer prices
 prices_historical=np.zeros((C,T))
